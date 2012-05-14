@@ -30,7 +30,7 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('disconnect', function() {
         socket.get('controller_id', function(err, controller_id) {
-            controllers.splice(nodes.indexOf(controller_id), 1);
+            controllers.splice(controllers.indexOf(controller_id), 1);
             io.sockets.emit('updated controller list', controllers);
         });
     });
