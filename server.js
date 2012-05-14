@@ -6,7 +6,7 @@ var app = require('http').createServer(handler)
 app.listen(8080);
 
 function handler (req, res) {
-    fs.readFile(__dirname + '/controller.html', function (err, data) {
+    fs.readFile(__dirname + '/controller/controller.html', function (err, data) {
         if (err) {
             res.writeHead(500);
             return res.end('Error loading controller.html');
