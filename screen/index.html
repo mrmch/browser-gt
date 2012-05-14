@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Sample Three.js</title>
+        <style>
+            #container {
+                background: #000;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div id="container"></div>
+
+    </body>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="./tquery-all.js"></script>
+    <script src="js/lib/physics.js"></script>
+    <script src="js/lib/THREEx.microphysics.js"></script>
+    <script src="js/lib/THREEx.KeyboardState.js"></script>
+    <script src="js/lib/Stats.js"></script>
+    <script src="fonts/helvetiker_bold.typeface.js"></script>
+
+    <script type="text/javascript">
+        /**
+         * Control variables
+         */
+        var container = $('#container'),
+            camera, controls, scene, renderer, light,
+            container, stats,
+            keyboard,
+            microphysics;
+
+        var MARGIN = 100,
+            SCREEN_WIDTH = window.innerWidth,
+            SCREEN_HEIGHT = window.innerHeight - 2 * MARGIN,
+            FLOOR = -250;
+
+        // set some camera attributes
+        var VIEW_ANGLE = 45,
+            ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
+            NEAR = 0.1,
+            FAR = 10000,
+            SHADOW_MAP_WIDTH = 2048, 
+            SHADOW_MAP_HEIGHT = 1024;
+
+        // cars
+        var car,
+            cars = [];
+
+        var PAUSE_ANIMATION = false,
+            CAMERA_SPEED = 1,
+            MOVE_CAMERA = true;
+
+        init();
+        animate();
+
+        function init() {
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+            container.append(renderer.domElement);
+
+            scene = new THREE.Scene();
+
+            // CAMERA
+            camera = new THREE.PerspectiveCamera(
+                VIEW_ANGLE,
+                ASPECT,
+                NEAR,
+                FAR
+            );
+            camera.position.z = 2500;
+
+            // LIGHTS
+            var ambient = new THREE.AmbientLight( 0x444444 );
+
+            light = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI, 1 );
+            light.position.set( 0, 1500, 1000 );
+            light.target.position.set( 0, 0, 0 );
+            light.castShadow = true;
+            light.shadowCameraNear = 700;
+            light.shadowCameraFar = camera.far;
+            light.shadowCameraFov = 50;
+            //light.shadowCameraVisible = true;
+            light.shadowBias = 0.0001;
+            light.shadowDarkness = 0.5;
+            light.shadowMapWidth = SHADOW_MAP_WIDTH;
+            light.shadowMapHeight = SHADOW_MAP_HEIGHT;
+
+
+            // ACTION (PHYSICS)
+            microphysics = new THREEx.Microphysics({});
+            microphysics.start();
+
+            // STATS
+            stats = new Stats();
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.top = '0px';
+            stats.domElement.style.zIndex = 100;
+            container.append( stats.domElement );
+
+
+            // ADD EVERYTHING TO SCENE
+            scene.add(camera);
+            scene.add(ambient);
+            scene.add(light);
+
+            createScene();
+
+            keyboard = new THREEx.KeyboardState();
+        }
+
+        function createScene( ) {
+            // GROUND
+
+            var geometry = new THREE.PlaneGeometry( 100, 100 );
+            var planeMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
+            THREE.ColorUtils.adjustHSV( planeMaterial.color, 0, 0, 0.9 );
+            planeMaterial.ambient = planeMaterial.color;
+
+            var ground = new THREE.Mesh( geometry, planeMaterial );
+
+            ground.position.set( 0, FLOOR, 0 );
+            ground.scale.set( 100, 100, 100 );
+
+            ground.castShadow = false;
+            ground.receiveShadow = true;
+
+            scene.add( ground );
+
+            // TEXT
+
+            var textGeo = new THREE.TextGeometry( "browser gran turismo", {
+                size: 200,
+                height: 50,
+                curveSegments: 12,
+
+                font: "helvetiker",
+                weight: "bold",
+                style: "normal",
+
+                bevelThickness: 2,
+                bevelSize: 5,
+                bevelEnabled: true
+            });
+
+            textGeo.computeBoundingBox();
+            var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
+
+            var textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000, specular: 0xffffff, ambient: 0xaa0000 } );
+
+            var mesh = new THREE.Mesh( textGeo, textMaterial );
+            mesh.position.x = centerOffset;
+            mesh.position.y = FLOOR + 67;
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            scene.add( mesh );
+
+            // CUBES
+
+            var mesh = new THREE.Mesh( new THREE.CubeGeometry( 2000, 220, 150 ), planeMaterial );
+
+            mesh.position.y = FLOOR - 50;
+            mesh.position.z = 20;
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            scene.add( mesh );
+
+            car = new THREE.Mesh( new THREE.CubeGeometry(100, 50, 50), planeMaterial );
+
+            car.position.y = FLOOR;
+            car.position.z = 20;
+
+            car.castShadow = true;
+            car.receiveShadow = true;
+
+            scene.add(car);
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+
+            if (PAUSE_ANIMATION) {
+                return;
+            }
+
+            if (MOVE_CAMERA) {
+                if(keyboard.pressed('right')) camera.position.x += CAMERA_SPEED;	
+				if(keyboard.pressed('left')) camera.position.x -= CAMERA_SPEED;	
+				if(keyboard.pressed('up')) camera.position.y += CAMERA_SPEED;	
+				if(keyboard.pressed('down') ) camera.position.y -= CAMERA_SPEED;	
+            }
+
+            render();
+            stats.update();
+        }
+
+        function render() {
+            microphysics.update();
+            renderer.clear();
+            renderer.render(scene, camera);
+        }
+    </script>
+</html>
+
