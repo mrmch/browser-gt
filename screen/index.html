@@ -2,15 +2,16 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Sample Three.js</title>
+        <title>BbBM - Browser based Bomber Man</title>
         <style>
             #container {
                 background: #000;
+                color: white;
             }
         </style>
     </head>
     <body>
-        <div id="container"></div>
+        <div id="container"><h1>Loading ...</h1></div>
     </body>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
@@ -24,6 +25,8 @@
     <script src="/screen/js/maps/map1.js"></script>
     <script src="/screen/js/maps/map1_properties.js"></script>
 
+    <script src="/socket.io/socket.io.js"></script>
+
     <script type="text/javascript">
         /**
          * Control variables
@@ -35,8 +38,8 @@
             microphysics;
 
         var MARGIN = 100,
-            SCREEN_WIDTH = window.innerWidth - 10,
-            SCREEN_HEIGHT = window.innerHeight - 10,
+            SCREEN_WIDTH = window.innerWidth - 50,
+            SCREEN_HEIGHT = window.innerHeight - 50,
             FLOOR = -250;
 
         // set some camera attributes
@@ -55,13 +58,13 @@
 
         init();
         animate();
+        PAUSE_ANIMATION = true;
 
         function init() {
             container.css("width", SCREEN_WIDTH + "px")
                 .css("height", SCREEN_HEIGHT + "px");
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-            container.append(renderer.domElement);
 
             scene = new THREE.Scene();
 
@@ -103,7 +106,6 @@
             stats.domElement.style.position = 'absolute';
             stats.domElement.style.top = '0px';
             stats.domElement.style.zIndex = 100;
-            container.append( stats.domElement );
 
 
             // ADD EVERYTHING TO SCENE
@@ -115,6 +117,11 @@
             renderMap();
 
             keyboard = new THREEx.KeyboardState();
+
+            // clear the container, init finished
+            container.html('');
+            container.append(renderer.domElement);
+            container.append(stats.domElement);
         }
 
         function createScene( ) {
@@ -207,9 +214,6 @@
                 voxel.position.z = map_voxel.z * voxel_size;
                 voxel.matrixAutoUpdate = false;
                 voxel.updateMatrix();
-                console.log("created new voxel", voxel.position.x,
-                        voxel.position.y,
-                        voxel.position.z);
                 scene.add(voxel);
             }
             console.log("done render map");
