@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <!-- Conditional comment for mobile ie7 blogs.msdn.com/b/iemobile/ -->
 <!--[if IEMobile 7 ]>    <html class="no-js iem7" lang="en"> <![endif]-->
 <!--[if (gt IEMobile 7)|!(IEMobile)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
@@ -6,7 +6,7 @@
 <head>
   <meta charset="utf-8">
 
-  <title></title>
+  <title>Game Controller</title>
   <meta name="description" content="">
 
   <!-- Mobile viewport optimization h5bp.com/ad -->
@@ -41,7 +41,7 @@
   <link rel="stylesheet" href="css/style.css">
 
   <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
-  <script src="js/libs/modernizr-2.0.6.min.js"></script>
+  <!-- <script src="js/libs/modernizr-2.0.6.min.js"></script> -->
 </head>
 
 <body>
@@ -63,14 +63,65 @@
   <!-- JavaScript at the bottom for fast page loading -->
 
   <!-- Grab Google CDN's jQuery, with a protocol relative URL; fall back to local if necessary -->
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+  <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="js/libs/jquery-1.7.1.min.js"></script>
+  <script>window.jQuery || document.write('<script src="js/libs/jquery-1.7.1.min.js"><\/script>')</script> -->
 
   <!-- scripts concatenated and minified via ant build script-->
-  <script src="js/helper.js"></script>
+  <!-- <script src="js/helper.js"></script> -->
+  
+  <!-- Socket.IO incudes -->
+  <script src="/socket.io/socket.io.js"></script>
+  
+  <!-- Controller logic -->
+  <script>
+    var socket = io.connect('http://10.30.18.139:8080'),
+        controller = {
+          id: Math.round(Math.random() * 1000000000)
+        },
+        controllers = [],
+        debug = function (msg) {
+          document.getElementById("debug").innerHTML = msg;
+        };
+    
+    socket.on('updated controller list', function(updated_nodes) {
+      controllers = updated_nodes;
+      debug("Total nodes: " + controllers.length);
+    });
+    
+    socket.on('connect', function() {
+      socket.emit('set controller_id', controller.id);
+    });
+    
+    socket.on('disconnect', function() {
+      debug("Error connecting to the server.");
+    });
+    
+    var tilt = function(o) {
+      //console.log(o);
+    };
+    
+    if (window.DeviceOrientationEvent) {
+        window.addEventListener("deviceorientation", function () {
+            tilt([event.beta, event.gamma]);
+        }, true);
+    } else if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', function () {
+            tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
+        }, true);
+    } else {
+        window.addEventListener("MozOrientation", function () {
+            tilt([orientation.x * 50, orientation.y * 50]);
+        }, true);
+    }
+    
+  </script>
+  
   <!-- end scripts-->
 
   <!-- Debugger - remove for production -->
   <!-- <script src="https://getfirebug.com/firebug-lite.js"></script> -->
+  
+  <div id="debug"></div>
 </body>
 </html>
