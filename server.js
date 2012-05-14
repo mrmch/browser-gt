@@ -1,16 +1,37 @@
-var app = require('express').createServer(),
-    io = require('socket.io').listen(app);
+var app = require('http').createServer(handler)
+  , io = require('socket.io').listen(app)
+  , fs = require('fs')
+  , controllers = [];
 
 app.listen(8080);
 
-app.get('/', function (req, res) {
-    res.sendfile(__dirname + '/client/index.html');
-});
+function handler (req, res) {
+    fs.readFile(__dirname + '/controller.html', function (err, data) {
+        if (err) {
+            res.writeHead(500);
+            return res.end('Error loading controller.html');
+        }
 
-io.sockets.on('connection', function(socket) {
-    socket.emit('news', { hello: 'world' });
-    socket.on('my event', function(data) {
-        console.log(data);
+        res.writeHead(200);
+        res.end(data);
+    });
+}
+
+io.sockets.on('connection', function (socket) {
+    socket.on('set controller_id', function (controller_id) {
+        if (controllers.indexOf(controller_id) == -1) {
+            controllers.push(controller_id);
+        }
+
+        socket.set('controller_id', controller_id, function() {
+            io.sockets.emit('updated controller list', controllers);
+        });
+    });
+
+    socket.on('disconnect', function() {
+        socket.get('controller_id', function(err, controller_id) {
+            controllers.splice(nodes.indexOf(controller_id), 1);
+            io.sockets.emit('updated controller list', controllers);
+        });
     });
 });
-
