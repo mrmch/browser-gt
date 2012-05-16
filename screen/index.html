@@ -2,28 +2,30 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Sample Three.js</title>
+        <title>BbBM - Browser based Bomber Man</title>
         <style>
             #container {
                 background: #000;
-                width: 100%;
-                height: 100%;
+                color: white;
             }
         </style>
     </head>
     <body>
-
-        <div id="container"></div>
-
+        <div id="container"><h1>Loading ...</h1></div>
     </body>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="./tquery-all.js"></script>
-    <script src="js/lib/physics.js"></script>
-    <script src="js/lib/THREEx.microphysics.js"></script>
-    <script src="js/lib/THREEx.KeyboardState.js"></script>
-    <script src="js/lib/Stats.js"></script>
-    <script src="fonts/helvetiker_bold.typeface.js"></script>
+    <script src="/screen/js/lib/tquery-all.js"></script>
+    <script src="/screen/js/lib/physics.js"></script>
+    <script src="/screen/js/lib/THREEx.microphysics.js"></script>
+    <script src="/screen/js/lib/THREEx.KeyboardState.js"></script>
+    <script src="/screen/js/lib/Stats.js"></script>
+    <script src="/screen/js/fonts/helvetiker_bold.typeface.js"></script>
+
+    <script src="/screen/js/maps/map1.js"></script>
+    <script src="/screen/js/maps/map1_properties.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
 
     <script type="text/javascript">
         /**
@@ -36,8 +38,8 @@
             microphysics;
 
         var MARGIN = 100,
-            SCREEN_WIDTH = window.innerWidth,
-            SCREEN_HEIGHT = window.innerHeight - 2 * MARGIN,
+            SCREEN_WIDTH = window.innerWidth - 50,
+            SCREEN_HEIGHT = window.innerHeight - 50,
             FLOOR = -250;
 
         // set some camera attributes
@@ -49,20 +51,20 @@
             SHADOW_MAP_HEIGHT = 1024;
 
         // cars
-        var car,
-            cars = [];
 
         var PAUSE_ANIMATION = false,
-            CAMERA_SPEED = 1,
+            CAMERA_SPEED = 5,
             MOVE_CAMERA = true;
 
         init();
         animate();
+        PAUSE_ANIMATION = true;
 
         function init() {
+            container.css("width", SCREEN_WIDTH + "px")
+                .css("height", SCREEN_HEIGHT + "px");
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-            container.append(renderer.domElement);
 
             scene = new THREE.Scene();
 
@@ -73,13 +75,16 @@
                 NEAR,
                 FAR
             );
-            camera.position.z = 2500;
+            //camera.position.z = 2500;
+            camera.position.x = 45;
+            camera.position.y = 1000;
+            camera.position.z = 260;
+            camera.rotation.x = -1.5;
 
             // LIGHTS
             var ambient = new THREE.AmbientLight( 0x444444 );
-
             light = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI, 1 );
-            light.position.set( 0, 1500, 1000 );
+            light.position.set( 0, 1500, 0);
             light.target.position.set( 0, 0, 0 );
             light.castShadow = true;
             light.shadowCameraNear = 700;
@@ -101,7 +106,6 @@
             stats.domElement.style.position = 'absolute';
             stats.domElement.style.top = '0px';
             stats.domElement.style.zIndex = 100;
-            container.append( stats.domElement );
 
 
             // ADD EVERYTHING TO SCENE
@@ -110,8 +114,14 @@
             scene.add(light);
 
             createScene();
+            renderMap();
 
             keyboard = new THREEx.KeyboardState();
+
+            // clear the container, init finished
+            container.html('');
+            container.append(renderer.domElement);
+            container.append(stats.domElement);
         }
 
         function createScene( ) {
@@ -130,10 +140,9 @@
             ground.castShadow = false;
             ground.receiveShadow = true;
 
-            scene.add( ground );
+            //scene.add( ground );
 
             // TEXT
-
             var textGeo = new THREE.TextGeometry( "browser gran turismo", {
                 size: 200,
                 height: 50,
@@ -160,7 +169,7 @@
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            scene.add( mesh );
+            //scene.add( mesh );
 
             // CUBES
 
@@ -172,17 +181,42 @@
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            scene.add( mesh );
+            //scene.add( mesh );
 
-            car = new THREE.Mesh( new THREE.CubeGeometry(100, 50, 50), planeMaterial );
-
-            car.position.y = FLOOR;
-            car.position.z = 20;
-
-            car.castShadow = true;
-            car.receiveShadow = true;
-
-            scene.add(car);
+        }
+        
+        function renderMap() {
+            /**
+             * Expects a map variable to defined which is an array
+             * Draw a new map using:
+             *  http://jeromeetienne.github.com/marbleGame/editor/
+             * Voxel properties:
+             *  x, y, z
+             *  t (type)
+             */
+            var voxel = null,
+                map_voxel = null,
+                voxel_colour = null,
+                voxel_size = 50;
+            for (i = 0; i < map.length; i++) {
+                map_voxel = map[i];
+                voxel_colour = voxel_types[map_voxel.t].colour; 
+                voxel = new THREE.Mesh(
+                        new THREE.CubeGeometry(voxel_size, voxel_size, voxel_size), 
+                        new THREE.MeshLambertMaterial({
+                            color: voxel_colour, 
+                            opacity: 1 
+                        }
+                    )
+                );
+                voxel.position.x = map_voxel.x * voxel_size;
+                voxel.position.y = map_voxel.y * voxel_size;
+                voxel.position.z = map_voxel.z * voxel_size;
+                voxel.matrixAutoUpdate = false;
+                voxel.updateMatrix();
+                scene.add(voxel);
+            }
+            console.log("done render map");
         }
 
         function animate() {
@@ -195,8 +229,8 @@
             if (MOVE_CAMERA) {
                 if(keyboard.pressed('right')) camera.position.x += CAMERA_SPEED;	
 				if(keyboard.pressed('left')) camera.position.x -= CAMERA_SPEED;	
-				if(keyboard.pressed('up')) camera.position.y += CAMERA_SPEED;	
-				if(keyboard.pressed('down') ) camera.position.y -= CAMERA_SPEED;	
+				if(keyboard.pressed('up')) camera.position.z += CAMERA_SPEED;	
+				if(keyboard.pressed('down') ) camera.position.z -= CAMERA_SPEED;	
             }
 
             render();

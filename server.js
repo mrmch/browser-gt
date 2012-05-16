@@ -1,21 +1,19 @@
-var app = require('http').createServer(handler)
-  , io = require('socket.io').listen(app)
-  , fs = require('fs')
-  , controllers = [];
+var express = require('express'),
+    app = express.createServer(), 
+    io = require('socket.io').listen(app),
+    controllers = [];
+
+app.get('/screen', function(req, res){
+    res.redirect('/screen/index.html');
+});
+app.get('/controller', function(req, res){
+    res.redirect('/controller/index.html');
+});
+
+app.use('/screen/', express.static(__dirname + '/screen/'));
+app.use('/controller/', express.static(__dirname + '/controller/'));
 
 app.listen(8080);
-
-function handler (req, res) {
-    fs.readFile(__dirname + '/controller/controller.html', function (err, data) {
-        if (err) {
-            res.writeHead(500);
-            return res.end('Error loading controller.html');
-        }
-
-        res.writeHead(200);
-        res.end(data);
-    });
-}
 
 io.sockets.on('connection', function (socket) {
     socket.on('set controller_id', function (controller_id) {
@@ -41,3 +39,4 @@ io.sockets.on('connection', function (socket) {
         });
     });
 });
+
