@@ -27,6 +27,12 @@ io.sockets.on('connection', function (socket) {
             io.sockets.emit('updated controller list', controllers);
         });
     });
+    
+    socket.on('action', function(action) {
+        socket.get('controller_id', function(err, controller_id) {
+            io.sockets.emit('new action', [controller_id, action]);
+        });
+    })
 
     socket.on('disconnect', function() {
         socket.get('controller_id', function(err, controller_id) {

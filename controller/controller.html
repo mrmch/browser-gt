@@ -50,8 +50,10 @@
     <header>
 
     </header>
+    
     <div id="main" role="main">
-
+      <div id="debug"></div>
+      <ul id="controllers"></ul>
     </div>
 
     <footer>
@@ -82,15 +84,30 @@
         controllers = [],
         debug = function (msg) {
           document.getElementById("debug").innerHTML = msg;
+        },
+        byId = function(id) {
+          return document.getElementById(id);
+        },
+        newElemWithId = function(str, id) {
+          return document.createElement(str).setAttribute("id", id);
         };
     
     socket.on('updated controller list', function(updated_nodes) {
       controllers = updated_nodes;
       debug("Total nodes: " + controllers.length);
+      
+      byId("controllers").innerHTML = "";
+      for (i in controllers) {
+        byId("controllers").appendChild(newElemWithId("li", controllers[i]));
+      }
     });
     
     socket.on('connect', function() {
       socket.emit('set controller_id', controller.id);
+    });
+    
+    socket.on('new action', function(o) {
+      byId(o[0]).innerHTML(o[1]);
     });
     
     socket.on('disconnect', function() {
@@ -98,7 +115,7 @@
     });
     
     var tilt = function(o) {
-      //console.log(o);
+      socket.emit('action', {'accelerometer': o});
     };
     
     if (window.DeviceOrientationEvent) {
@@ -121,7 +138,5 @@
 
   <!-- Debugger - remove for production -->
   <!-- <script src="https://getfirebug.com/firebug-lite.js"></script> -->
-  
-  <div id="debug"></div>
 </body>
 </html>
