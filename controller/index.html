@@ -62,28 +62,22 @@
   
   <!-- Controller logic -->
   <script>
-    var socket = io.connect('http://10.30.18.139:8080'),
+    var socket = io.connect('http://127.0.0.1:8080'),
         controller = {
           id: Math.round(Math.random() * 1000000000)
         },
         controllers = [],
         debug = function (msg) {
-          document.getElementById("debug").innerHTML = msg;
-        },
-        byId = function(id) {
-          return document.getElementById(id);
-        },
-        newElemWithId = function(str, id) {
-          return document.createElement(str).setAttribute("id", id);
+          $("debug").html(msg);
         };
-    
+      
     socket.on('updated controller list', function(updated_nodes) {
       controllers = updated_nodes;
       debug("Total nodes: " + controllers.length);
       
-      byId("controllers").innerHTML = "";
+      $("#controllers").html("");
       for (i in controllers) {
-        byId("controllers").appendChild(newElemWithId("li", controllers[i]));
+        $("ul#controllers").append($("<li id='" + controllers[i] + "'></li>"));
       }
     });
     
@@ -92,7 +86,7 @@
     });
     
     socket.on('new action', function(o) {
-      byId(o[0]).innerHTML(o[1]);
+      $("li#" +o[0]).html(o[1]['accelerometer'][0] + " - " + o[1]['accelerometer'][0]);
     });
     
     socket.on('disconnect', function() {
