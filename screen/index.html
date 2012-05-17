@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8" />
@@ -18,19 +18,11 @@
             </ul>
         </div>
     </body>
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="/screen/js/lib/Three.js"></script>
-    <script src="/screen/js/lib/physics.js"></script>
-    <script src="/screen/js/lib/THREEx.microphysics.js"></script>
-    <script src="/screen/js/lib/THREEx.KeyboardState.js"></script>
-    <script src="/screen/js/lib/Stats.js"></script>
-    <script src="/screen/js/fonts/helvetiker_bold.typeface.js"></script>
-
-    <script src="/screen/js/maps/map1.js"></script>
-    <script src="/screen/js/maps/map1_properties.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 
     <script src="/socket.io/socket.io.js"></script>
+
+    <script src="/screen/games/browser-bomber/game.js"></script>
 
     <script type="text/javascript">
         /**
@@ -48,24 +40,6 @@
             SCREEN_HEIGHT = window.innerHeight * .50,
             FLOOR = -250;
 
-        // set some camera attributes
-        var VIEW_ANGLE = 45,
-            ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT,
-            NEAR = 0.1,
-            FAR = 10000,
-            SHADOW_MAP_WIDTH = 2048, 
-            SHADOW_MAP_HEIGHT = 1024;
-
-        // cars
-
-        var PAUSE_ANIMATION = false,
-            CAMERA_SPEED = 5,
-            MOVE_CAMERA = true;
-
-        var player;
-
-        init();
-        animate();
         PAUSE_ANIMATION = true;
 
         if (PAUSE_ANIMATION) {
@@ -80,182 +54,6 @@
                 PAUSE_ANIMATION = true;
             }
         });
-
-        function createMesh( geometry ) 
-        { 
-			//geometry.materials[0][0].shading = THREE.FlatShading;
-			//geometry.materials[0][0].morphTargets = true;
-
-			var material = new THREE.MeshFaceMaterial();
-
-			var mesh = new THREE.Mesh( geometry, material );
-			mesh.scale.set(50, 50, 50);
-
-			scene.add( mesh ); 
-        };
-
-        function init() {
-            container.css("width", SCREEN_WIDTH + "px")
-                .css("height", SCREEN_HEIGHT + "px");
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-            scene = new THREE.Scene();
-
-            // CAMERA
-            camera = new THREE.PerspectiveCamera(
-                VIEW_ANGLE,
-                ASPECT,
-                NEAR,
-                FAR
-            );
-            //camera.position.z = 2500;
-            camera.position.x = 45;
-            camera.position.y = 1000;
-            camera.position.z = 260;
-            camera.rotation.x = -1.5;
-
-            // LIGHTS
-            var ambient = new THREE.AmbientLight( 0x444444 );
-            light = new THREE.SpotLight( 0xffffff, 1, 0, Math.PI, 1 );
-            light.position.set( 0, 1500, 0);
-            light.target.position.set( 0, 0, 0 );
-            light.castShadow = true;
-            light.shadowCameraNear = 700;
-            light.shadowCameraFar = camera.far;
-            light.shadowCameraFov = 50;
-            //light.shadowCameraVisible = true;
-            light.shadowBias = 0.0001;
-            light.shadowDarkness = 0.5;
-            light.shadowMapWidth = SHADOW_MAP_WIDTH;
-            light.shadowMapHeight = SHADOW_MAP_HEIGHT;
-
-
-            // ACTION (PHYSICS)
-            microphysics = new THREEx.Microphysics({});
-            microphysics.start();
-
-            // STATS
-            stats = new Stats();
-            stats.domElement.style.position = 'absolute';
-            stats.domElement.style.top = '0px';
-            stats.domElement.style.zIndex = 100;
-
-
-            // ADD EVERYTHING TO SCENE
-            scene.add(camera);
-            scene.add(ambient);
-            scene.add(light);
-
-            createScene();
-            renderMap();
-
-            // other three 
-            keyboard = new THREEx.KeyboardState();
-            loader = new THREE.JSONLoader();
-            loader.load('/screen/models/BlenboModel.js', createMesh);
-
-            // clear the container, init finished
-            container.html('');
-            container.append(renderer.domElement);
-            container.append(stats.domElement);
-        }
-
-
-        function createScene( ) {
-            // GROUND
-
-            var geometry = new THREE.PlaneGeometry( 100, 100 );
-            var planeMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
-            THREE.ColorUtils.adjustHSV( planeMaterial.color, 0, 0, 0.9 );
-            planeMaterial.ambient = planeMaterial.color;
-
-            var ground = new THREE.Mesh( geometry, planeMaterial );
-
-            ground.position.set( 0, FLOOR, 0 );
-            ground.scale.set( 100, 100, 100 );
-
-            ground.castShadow = false;
-            ground.receiveShadow = true;
-
-            //scene.add( ground );
-
-            // TEXT
-            var textGeo = new THREE.TextGeometry( "browser gran turismo", {
-                size: 200,
-                height: 50,
-                curveSegments: 12,
-
-                font: "helvetiker",
-                weight: "bold",
-                style: "normal",
-
-                bevelThickness: 2,
-                bevelSize: 5,
-                bevelEnabled: true
-            });
-
-            textGeo.computeBoundingBox();
-            var centerOffset = -0.5 * ( textGeo.boundingBox.max.x - textGeo.boundingBox.min.x );
-
-            var textMaterial = new THREE.MeshPhongMaterial( { color: 0xff0000, specular: 0xffffff, ambient: 0xaa0000 } );
-
-            var mesh = new THREE.Mesh( textGeo, textMaterial );
-            mesh.position.x = centerOffset;
-            mesh.position.y = FLOOR + 67;
-
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-
-            //scene.add( mesh );
-
-            // CUBES
-
-            var mesh = new THREE.Mesh( new THREE.CubeGeometry( 2000, 220, 150 ), planeMaterial );
-
-            mesh.position.y = FLOOR - 50;
-            mesh.position.z = 20;
-
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-
-            //scene.add( mesh );
-
-        }
-        
-        function renderMap() {
-            /**
-             * Expects a map variable to defined which is an array
-             * Draw a new map using:
-             *  http://jeromeetienne.github.com/marbleGame/editor/
-             * Voxel properties:
-             *  x, y, z
-             *  t (type)
-             */
-            var voxel = null,
-                map_voxel = null,
-                voxel_colour = null,
-                voxel_size = 50;
-            for (i = 0; i < map.length; i++) {
-                map_voxel = map[i];
-                voxel_colour = voxel_types[map_voxel.t].colour; 
-                voxel = new THREE.Mesh(
-                        new THREE.CubeGeometry(voxel_size, voxel_size, voxel_size), 
-                        new THREE.MeshLambertMaterial({
-                            color: voxel_colour, 
-                            opacity: 1 
-                        }
-                    )
-                );
-                voxel.position.x = map_voxel.x * voxel_size;
-                voxel.position.y = map_voxel.y * voxel_size;
-                voxel.position.z = map_voxel.z * voxel_size;
-                voxel.matrixAutoUpdate = false;
-                voxel.updateMatrix();
-                scene.add(voxel);
-            }
-            console.log("done render map");
-        }
 
         function animate() {
             requestAnimationFrame( animate );
@@ -273,12 +71,6 @@
 
             render();
             stats.update();
-        }
-
-        function render() {
-            microphysics.update();
-            renderer.clear();
-            renderer.render(scene, camera);
         }
     </script>
 </html>
