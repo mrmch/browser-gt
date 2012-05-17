@@ -12,10 +12,15 @@
     </head>
     <body>
         <div id="container"><h1>Loading ...</h1></div>
+        <div id="controls">
+            <ul>
+                <li>PAUSE_ANIMATION <input type="checkbox" id="ctrl_pause_animation" /></li>
+            </ul>
+        </div>
     </body>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="/screen/js/lib/tquery-all.js"></script>
+    <script src="/screen/js/lib/Three.js"></script>
     <script src="/screen/js/lib/physics.js"></script>
     <script src="/screen/js/lib/THREEx.microphysics.js"></script>
     <script src="/screen/js/lib/THREEx.KeyboardState.js"></script>
@@ -35,11 +40,12 @@
             camera, controls, scene, renderer, light,
             container, stats,
             keyboard,
-            microphysics;
+            microphysics,
+            loader;
 
         var MARGIN = 100,
-            SCREEN_WIDTH = window.innerWidth - 50,
-            SCREEN_HEIGHT = window.innerHeight - 50,
+            SCREEN_WIDTH = window.innerWidth * .50,
+            SCREEN_HEIGHT = window.innerHeight * .50,
             FLOOR = -250;
 
         // set some camera attributes
@@ -56,9 +62,37 @@
             CAMERA_SPEED = 5,
             MOVE_CAMERA = true;
 
+        var player;
+
         init();
         animate();
         PAUSE_ANIMATION = true;
+
+        if (PAUSE_ANIMATION) {
+            $('#ctrl_pause_animation').attr('checked', 'checked');
+        } else {
+            $('#ctrl_pause_animation').attr('checked', null);
+        }
+        $('#ctrl_pause_animation').click(function(){
+            if ($(this).attr('checked') == undefined) {
+                PAUSE_ANIMATION = false;
+            } else {
+                PAUSE_ANIMATION = true;
+            }
+        });
+
+        function createMesh( geometry ) 
+        { 
+			//geometry.materials[0][0].shading = THREE.FlatShading;
+			//geometry.materials[0][0].morphTargets = true;
+
+			var material = new THREE.MeshFaceMaterial();
+
+			var mesh = new THREE.Mesh( geometry, material );
+			mesh.scale.set(50, 50, 50);
+
+			scene.add( mesh ); 
+        };
 
         function init() {
             container.css("width", SCREEN_WIDTH + "px")
@@ -116,13 +150,17 @@
             createScene();
             renderMap();
 
+            // other three 
             keyboard = new THREEx.KeyboardState();
+            loader = new THREE.JSONLoader();
+            loader.load('/screen/models/BlenboModel.js', createMesh);
 
             // clear the container, init finished
             container.html('');
             container.append(renderer.domElement);
             container.append(stats.domElement);
         }
+
 
         function createScene( ) {
             // GROUND
