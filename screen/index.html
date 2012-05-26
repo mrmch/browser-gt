@@ -11,7 +11,7 @@
         </style>
     </head>
     <body>
-        <div id="container"><h1>Loading ...</h1></div>
+        <div id="container"><h1>Waiting for game ... enable JavaScript!</h1></div>
         <div id="controls">
             <ul>
                 <li>PAUSE_ANIMATION <input type="checkbox" id="ctrl_pause_animation" /></li>
@@ -22,12 +22,14 @@
 
     <script src="/socket.io/socket.io.js"></script>
 
-    <script src="/screen/games/browser-bomber/game.js"></script>
+    <script src="/screen/games/browser-bomber/js/crafty-min.js"></script>
+    <script src="/screen/games/browser-bomber/js/game.js"></script>
 
     <script type="text/javascript">
         /**
          * Control variables
          */
+
         var container = $('#container'),
             camera, controls, scene, renderer, light,
             container, stats,
@@ -40,38 +42,31 @@
             SCREEN_HEIGHT = window.innerHeight * .50,
             FLOOR = -250;
 
-        PAUSE_ANIMATION = true;
+        var PAUSE_ANIMATION = true;
 
-        if (PAUSE_ANIMATION) {
-            $('#ctrl_pause_animation').attr('checked', 'checked');
-        } else {
-            $('#ctrl_pause_animation').attr('checked', null);
-        }
-        $('#ctrl_pause_animation').click(function(){
-            if ($(this).attr('checked') == undefined) {
-                PAUSE_ANIMATION = false;
-            } else {
-                PAUSE_ANIMATION = true;
+        $(document).ready(function() {
+            if (GAME) {
+            
+                // GAME setup
+                GAME.init(window);
+                GAME.start();
             }
-        });
-
-        function animate() {
-            requestAnimationFrame( animate );
 
             if (PAUSE_ANIMATION) {
-                return;
+                $('#ctrl_pause_animation').attr('checked', 'checked');
+            } else {
+                $('#ctrl_pause_animation').attr('checked', null);
             }
 
-            if (MOVE_CAMERA) {
-                if(keyboard.pressed('right')) camera.position.x += CAMERA_SPEED;	
-				if(keyboard.pressed('left')) camera.position.x -= CAMERA_SPEED;	
-				if(keyboard.pressed('up')) camera.position.z += CAMERA_SPEED;	
-				if(keyboard.pressed('down') ) camera.position.z -= CAMERA_SPEED;	
-            }
+            $('#ctrl_pause_animation').click(function(){
+                if ($(this).attr('checked') == undefined) {
+                    PAUSE_ANIMATION = false;
+                } else {
+                    PAUSE_ANIMATION = true;
+                }
+            });
 
-            render();
-            stats.update();
-        }
+        });
     </script>
 </html>
 
