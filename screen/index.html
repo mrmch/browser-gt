@@ -11,7 +11,7 @@
         </style>
     </head>
     <body>
-        <div id="container"><h1>Waiting for game ... enable JavaScript!</h1></div>
+        <div id="container"></div>
         <div id="controls">
             <ul>
                 <li>PAUSE_ANIMATION <input type="checkbox" id="ctrl_pause_animation" /></li>
@@ -23,6 +23,7 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <script src="/screen/games/browser-bomber/js/crafty-min.js"></script>
+    <script src="/screen/games/browser-bomber/js/components/crafty-debug-bar-release.js"></script>
     <script src="/screen/games/browser-bomber/js/game.js"></script>
 
     <script type="text/javascript">
@@ -38,17 +39,16 @@
             loader;
 
         var MARGIN = 100,
-            SCREEN_WIDTH = window.innerWidth * .50,
-            SCREEN_HEIGHT = window.innerHeight * .50,
+            SCREEN_WIDTH = window.innerWidth * .90,
+            SCREEN_HEIGHT = window.innerHeight * .90,
             FLOOR = -250;
 
-        var PAUSE_ANIMATION = true;
+        var PAUSE_ANIMATION = false;
 
         $(document).ready(function() {
             if (GAME) {
-            
-                // GAME setup
-                GAME.init(window);
+                console.log('Starting game ...');
+                GAME.init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
                 GAME.start();
             }
 
@@ -65,7 +65,6 @@
                     PAUSE_ANIMATION = true;
                 }
             });
-
         });
     </script>
 </html>
