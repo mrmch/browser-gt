@@ -30,7 +30,7 @@ io.sockets.on('connection', function (socket) {
         socket.get('controller_id', function(err, controller_id) {
             io.sockets.emit('new action', [controller_id, action]);
         });
-    })
+    });
 
     socket.on('disconnect', function() {
         socket.get('controller_id', function(err, controller_id) {
