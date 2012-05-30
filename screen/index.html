@@ -32,18 +32,22 @@
          */
 
         var container = $('#container'),
+            screen_id = Math.round(Math.random() * 1000000000),
+            controllers = [],
             camera, controls, scene, renderer, light,
             container, stats,
             keyboard,
             microphysics,
-            loader;
-
-        var MARGIN = 100,
+            loader,
+            
+            MARGIN = 100,
             SCREEN_WIDTH = window.innerWidth * .90,
             SCREEN_HEIGHT = window.innerHeight * .90,
-            FLOOR = -250;
-
-        var PAUSE_ANIMATION = false;
+            FLOOR = -250,
+            
+            PAUSE_ANIMATION = false,
+            
+            socket = io.connect('http://127.0.0.1:8080');
 
         $(document).ready(function() {
             if (GAME) {
@@ -62,6 +66,27 @@
               PAUSE_ANIMATION = !PAUSE_ANIMATION;
             });
         });
+        
+          socket.on('updated controller list', function(updated_nodes) {
+            // new controller joined the game
+            controllers = updated_nodes;
+          });
+
+          socket.on('connect', function() {
+            // announce this screen to the server
+            socket.emit('set screen_id', screen_id);
+          });
+
+          socket.on('new action', function(o) {
+            // controller performed an action
+            // o[0]: controller id
+            // o[1]: action object
+            GAME.controller_action(o[0], o[1]);
+          });
+
+          socket.on('disconnect', function() {
+            // connection error handling
+          });
     </script>
 </html>
 

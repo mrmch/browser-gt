@@ -186,6 +186,7 @@ GAME.generateWorld = function() {
             .animate('walk_up',     0, 2, 4)
             .animate('walk_right',  0, 1, 4)
             .bind('NewDirection', function (direction) {
+                // console.log(direction.x + " - " + direction.y);
                 if (direction.x < 0) {
                     if (!this.isPlaying("walk_left"))
                         this.stop().animate("walk_left", 15, -1);
@@ -209,6 +210,7 @@ GAME.generateWorld = function() {
                 // we dont like hitting solids :( 
                 return;
             }).bind('Moved', function (from) {
+                console.log(from);
                 if (this.hit('solid')) {
                     this.attr({
                         x: from.x, 
@@ -308,3 +310,23 @@ GAME.init = function(window, width, height) {
     GAME.sprite_base = '/screen/games/' + GAME.name + '/images/';
 };
 
+GAME.controller_action = function(controller_id, action) {
+    var movement = {y: 0, x: 0};
+            
+    if (action.hasOwnProperty('accelerometer')) {
+        if (action.accelerometer[0] > 20) {
+            movement.y = 1;
+        } else if (action.accelerometer[0] < -20) {
+            movement.y = -1;
+        }
+        
+        if (action.accelerometer[1] > 20) {
+            movement.x = 1;
+        } else if (action.accelerometer[1] < -20) {
+            movement.x = -1;
+        }
+        
+        Crafty.trigger('NewDirection', movement);
+        
+    }
+}

@@ -45,6 +45,7 @@
     </header>
     
     <div id="main" role="main">
+      <button onClick="toggleEmit();">Toggle Emit</button>
       <div id="debug"></div>
       <ul id="controllers"></ul>
     </div>
@@ -62,14 +63,30 @@
   
   <!-- Controller logic -->
   <script>
-    var socket = io.connect('http://127.0.0.1:8080'),
+    var socket = io.connect('http://192.168.1.102:8080'),
         controller = {
           id: Math.round(Math.random() * 1000000000)
         },
         controllers = [],
         debug = function (msg) {
           $("debug").html(msg);
-        };
+        }, emit = true,
+        
+        // emit is throttled to a max of emitRateMax emits per second
+        emitRateMax = 5, emitCounter = 0, emitIsThrottled = function () {
+          if (emitCounter > emitRateMax) {
+            return true;
+          }
+          return false;
+        },
+        resetEmitCounter = function() {
+          emitCounter = 0;
+        };    
+    window.setInterval(resetEmitCounter, 1000);
+      
+    function toggleEmit() {
+      emit = !emit;
+    }
       
     socket.on('updated controller list', function(updated_nodes) {
       controllers = updated_nodes;
@@ -94,6 +111,11 @@
     });
     
     var tilt = function(o) {
+      if (!emit || emitIsThrottled()) {
+        return;
+      }
+      
+      emitCounter += 1;
       socket.emit('action', {'accelerometer': o});
     };
     
