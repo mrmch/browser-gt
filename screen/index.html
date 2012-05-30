@@ -59,11 +59,7 @@
             }
 
             $('#ctrl_pause_animation').click(function(){
-                if ($(this).attr('checked') == undefined) {
-                    PAUSE_ANIMATION = false;
-                } else {
-                    PAUSE_ANIMATION = true;
-                }
+              PAUSE_ANIMATION = !PAUSE_ANIMATION;
             });
         });
     </script>
