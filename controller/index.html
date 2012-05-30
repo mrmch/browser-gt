@@ -86,7 +86,7 @@
     });
     
     socket.on('new action', function(o) {
-      $("li#" +o[0]).html(o[1]['accelerometer'][0] + " - " + o[1]['accelerometer'][0]);
+      $("li#" +o[0]).html(o[1]['accelerometer'][0] + " - " + o[1]['accelerometer'][1]);
     });
     
     socket.on('disconnect', function() {
