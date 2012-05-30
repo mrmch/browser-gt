@@ -45,9 +45,8 @@
     </header>
     
     <div id="main" role="main">
-      <button onClick="toggleEmit();">Toggle Emit</button>
       <div id="debug"></div>
-      <ul id="controllers"></ul>
+      <ul id="screens"></ul>
     </div>
 
     <footer>
@@ -67,10 +66,11 @@
         controller = {
           id: Math.round(Math.random() * 1000000000)
         },
-        controllers = [],
+        screens = [],
+        inGame = false,
         debug = function (msg) {
-          $("debug").html(msg);
-        }, emit = true,
+          $("#debug").html(msg);
+        },
         
         // emit is throttled to a max of emitRateMax emits per second
         emitRateMax = 10, emitCounter = 0, emitRateCounterReset = 500,
@@ -86,34 +86,27 @@
       emitCounter = 0;
     }, emitRateCounterReset);
       
-    function toggleEmit() {
-      emit = !emit;
-    }
+    socket.on('updated screen list', function(updated_screens) {
+      screens = updated_screens;
+      debug("Total screens: " + screens.length);
+      console.log(screens);
       
-    socket.on('updated controller list', function(updated_nodes) {
-      controllers = updated_nodes;
-      debug("Total nodes: " + controllers.length);
-      
-      $("#controllers").html("");
-      for (i in controllers) {
-        $("ul#controllers").append($("<li id='" + controllers[i] + "'></li>"));
+      $("#screens").html("");
+      for (var i in screens) {
+        $("ul#screens").append($("<li class='joinScreen' id='" + screens[i] + "'>click to join: " + screens[i] + "</li>"));
       }
     });
     
     socket.on('connect', function() {
       socket.emit('set controller_id', controller.id);
     });
-    
-    socket.on('new action', function(o) {
-      $("li#" +o[0]).html(o[1]['accelerometer'][0] + " - " + o[1]['accelerometer'][1]);
-    });
-    
+        
     socket.on('disconnect', function() {
       debug("Error connecting to the server.");
     });
     
     var tilt = function(o) {
-      if (!emit || emitIsThrottled()) {
+      if (!inGame || emitIsThrottled()) {
         return;
       }
       
@@ -134,6 +127,18 @@
             tilt([orientation.x * 50, orientation.y * 50]);
         }, true);
     }
+    
+    $(function() {
+      $(".joinScreen").live('click', function() {
+        var screen_id = $(this).attr("id");
+        
+        socket.emit("join screen", screen_id);
+        inGame = true;
+        
+        $("ul#screens").hide();
+        debug("Joined screen");
+      });
+    });
     
   </script>
 </body>

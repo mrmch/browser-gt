@@ -1,102 +1,126 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <title>BbBM - Browser based Bomber Man</title>
-        <style>
-            #container {
-                background: #000;
-                color: white;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="container"></div>
-        <div id="controls">
-            <ul>
-                <li>PAUSE_ANIMATION <input type="checkbox" id="ctrl_pause_animation" /></li>
-            </ul>
-        </div>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Browser Games beta</title>
+    <style>
+      ul.gameList li {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  
+  <body>
+    
+    <div class="header">
+      <h1>Welcome to Browser Games beta. Choose a game to host.</h1>
+      
+      <ul class="gameList" id="game_list">
+      </ul>
+    </div>
+    
+    <ul id="loadingLog">
+    </ul>
+    
+    <div id="gameArea"></div>
+  
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-
     <script src="/socket.io/socket.io.js"></script>
-
-    <script src="/screen/games/browser-bomber/js/crafty-min.js"></script>
-    <script src="/screen/games/browser-bomber/js/components/crafty-debug-bar-release.js"></script>
-    <script src="/screen/games/browser-bomber/js/game.js"></script>
-
-    <script type="text/javascript">
-        /**
-         * Control variables
-         */
-
-        var container = $('#container'),
-            screen_id = Math.round(Math.random() * 1000000000),
-            controllers = [],
-            camera, controls, scene, renderer, light,
-            container, stats,
-            keyboard,
-            microphysics,
-            loader,
-            
-            MARGIN = 100,
-            SCREEN_WIDTH = window.innerWidth * .90,
-            SCREEN_HEIGHT = window.innerHeight * .90,
-            FLOOR = -250,
-            
-            PAUSE_ANIMATION = false,
-            
-            socket = io.connect('http://127.0.0.1:8080'),
-            
-            simulateKeyPress = function(key, delay) {
-              // key must be in Crafty's keys array. No lower case letters!
-              var keyUp = function() {
-                Crafty.trigger("KeyUp", {key: Crafty.keys[key]});
-              }
-              
-              Crafty.trigger('KeyDown', {key: Crafty.keys[key]});
-              window.setTimeout(keyUp, delay);
-            }
-
-        $(document).ready(function() {
-            if (GAME) {
-                console.log('Starting game ...');
-                GAME.init(window, SCREEN_WIDTH, SCREEN_HEIGHT);
-                GAME.start();
-            }
-
-            if (PAUSE_ANIMATION) {
-                $('#ctrl_pause_animation').attr('checked', 'checked');
-            } else {
-                $('#ctrl_pause_animation').attr('checked', null);
-            }
-
-            $('#ctrl_pause_animation').click(function(){
-              PAUSE_ANIMATION = !PAUSE_ANIMATION;
-            });
-        });
+  
+    <script>
+      var games = ['browser-bomber',],
+        screen_id = Math.round(Math.random() * 1000000000),
+        controllers = [],
+        socket = io.connect('http://127.0.0.1:8080'),
+        gameData = {},
+        inGame = false;
+      
+      // --- helper functions ---
+      function loadJSAsset(path) {
+        var elem = document.createElement("script");
+        elem.setAttribute("src", path);
         
-          socket.on('updated controller list', function(updated_nodes) {
-            // new controller joined the game
-            controllers = updated_nodes;
+        addToLoadingLog("Loading " + path);
+        $('body').append(elem);
+      }
+      
+      function addToLoadingLog(message) {
+        $("#loadingLog").append("<li>" + message + "</li>");
+      }
+      
+      // --- communication with server and controllers ---
+      socket.on('connect', function() {
+        // announce this screen to the server
+        socket.emit('set screen_id', screen_id);
+      });
+      
+      socket.on('controller joined ' + screen_id, function(controller_id) {
+        // controller joined the game
+        controllers.push(controller_id);
+        console.log("Controller joined in: " + controller_id);
+        
+        // notify the game
+        // GAME.new_controller()
+      });
+      
+      socket.on('controller left ' + screen_id, function(controller_id) {
+        controllers.splice(controllers.indexOf(controller_id), 1);
+        console.log("Controller left: " + controller_id);
+        
+        // notify the game        
+      });
+      
+      socket.on('new action ' + screen_id, function(o) {
+        // controller performed an action
+        // o[0]: controller id
+        // o[1]: action object
+        if (!inGame) {
+          return;
+        } 
+        
+        GAME.controller_action(o[0], o[1]);
+      });
+      
+      socket.on('disconnect', function() {
+        // connection error handling
+      });
+      
+      // --- screen/game flow and ui ---
+      $(function() {
+        // load game information
+        for (gameId in games) {
+          $.getJSON("/screen/games/" + games[gameId] + "/meta.json", function(data) {
+            $("#game_list").append("<li class='gameTitle' id='" + games[gameId] + "'>" + data.name + " (" + data.description +"). Created by " + data.author + "</li>");
+            gameData[games[gameId]] = data;
           });
-
-          socket.on('connect', function() {
-            // announce this screen to the server
-            socket.emit('set screen_id', screen_id);
-          });
-
-          socket.on('new action', function(o) {
-            // controller performed an action
-            // o[0]: controller id
-            // o[1]: action object
-            GAME.controller_action(o[0], o[1]);
-          });
-
-          socket.on('disconnect', function() {
-            // connection error handling
-          });
+        }
+        
+        // listener for starting games
+        $(".gameTitle").live('click', function() {          
+          var game_id = $(this).attr("id"),
+              imports = gameData[game_id].imports,
+              ready_imports = [];
+          
+          // hide screen UI
+          $(".header").hide();
+          
+          addToLoadingLog("Launching game: " + game_id);
+          
+          // load game's js assets
+          for (var i = 0; i < imports.length; i++) {
+            loadJSAsset("games/" + game_id + "/" + imports[i]);
+          }
+          
+          // hide loading UI
+          $("#loadingLog").hide();
+          
+          // game should be available by now. Launch it
+          GAME.init();
+          GAME.start();
+          inGame = true;
+        });
+      });
     </script>
+  </body>
 </html>
-
