@@ -73,16 +73,18 @@
         }, emit = true,
         
         // emit is throttled to a max of emitRateMax emits per second
-        emitRateMax = 5, emitCounter = 0, emitIsThrottled = function () {
+        emitRateMax = 10, emitCounter = 0, emitRateCounterReset = 500,
+        
+        emitIsThrottled = function () {
           if (emitCounter > emitRateMax) {
             return true;
           }
           return false;
-        },
-        resetEmitCounter = function() {
-          emitCounter = 0;
-        };    
-    window.setInterval(resetEmitCounter, 1000);
+        };
+        
+    window.setInterval(function() {
+      emitCounter = 0;
+    }, emitRateCounterReset);
       
     function toggleEmit() {
       emit = !emit;
