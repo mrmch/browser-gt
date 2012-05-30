@@ -50,6 +50,7 @@
             socket = io.connect('http://127.0.0.1:8080'),
             
             simulateKeyPress = function(key, delay) {
+              // key must be in Crafty's keys array. No lower case letters!
               var keyUp = function() {
                 Crafty.trigger("KeyUp", {key: Crafty.keys[key]});
               }
