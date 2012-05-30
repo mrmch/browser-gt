@@ -210,7 +210,6 @@ GAME.generateWorld = function() {
                 // we dont like hitting solids :( 
                 return;
             }).bind('Moved', function (from) {
-                console.log(from);
                 if (this.hit('solid')) {
                     this.attr({
                         x: from.x, 
@@ -311,22 +310,21 @@ GAME.init = function(window, width, height) {
 };
 
 GAME.controller_action = function(controller_id, action) {
-    var movement = {y: 0, x: 0};
-            
     if (action.hasOwnProperty('accelerometer')) {
         if (action.accelerometer[0] > 20) {
-            movement.y = 1;
+            Crafty.trigger('KeyDown', {key: Crafty.keys["S"]});
+            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["S"]})', 20);
         } else if (action.accelerometer[0] < -20) {
-            movement.y = -1;
+            Crafty.trigger('KeyDown', {key: Crafty.keys["W"]});
+            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["W"]})', 20);
         }
         
         if (action.accelerometer[1] > 20) {
-            movement.x = 1;
+            Crafty.trigger('KeyDown', {key: Crafty.keys["D"]});
+            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["D"]})', 20);
         } else if (action.accelerometer[1] < -20) {
-            movement.x = -1;
-        }
-        
-        Crafty.trigger('NewDirection', movement);
-        
+            Crafty.trigger('KeyDown', {key: Crafty.keys["A"]});
+            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["A"]})', 20);
+        }        
     }
 }
