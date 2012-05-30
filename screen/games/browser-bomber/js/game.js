@@ -312,19 +312,15 @@ GAME.init = function(window, width, height) {
 GAME.controller_action = function(controller_id, action) {
     if (action.hasOwnProperty('accelerometer')) {
         if (action.accelerometer[0] > 20) {
-            Crafty.trigger('KeyDown', {key: Crafty.keys["S"]});
-            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["S"]})', 20);
+            simulateKeyPress("S", 20);
         } else if (action.accelerometer[0] < -20) {
-            Crafty.trigger('KeyDown', {key: Crafty.keys["W"]});
-            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["W"]})', 20);
+            simulateKeyPress("W", 20);
         }
         
         if (action.accelerometer[1] > 20) {
-            Crafty.trigger('KeyDown', {key: Crafty.keys["D"]});
-            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["D"]})', 20);
+            simulateKeyPress("D", 20);
         } else if (action.accelerometer[1] < -20) {
-            Crafty.trigger('KeyDown', {key: Crafty.keys["A"]});
-            window.setTimeout('Crafty.trigger("KeyUp", {key: Crafty.keys["A"]})', 20);
+            simulateKeyPress("A", 20);
         }        
     }
 }

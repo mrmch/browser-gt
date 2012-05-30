@@ -47,7 +47,16 @@
             
             PAUSE_ANIMATION = false,
             
-            socket = io.connect('http://127.0.0.1:8080');
+            socket = io.connect('http://127.0.0.1:8080'),
+            
+            simulateKeyPress = function(key, delay) {
+              var keyUp = function() {
+                Crafty.trigger("KeyUp", {key: Crafty.keys[key]});
+              }
+              
+              Crafty.trigger('KeyDown', {key: Crafty.keys[key]});
+              window.setTimeout(keyUp, delay);
+            }
 
         $(document).ready(function() {
             if (GAME) {
