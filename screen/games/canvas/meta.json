@@ -1,0 +1,9 @@
+{
+  "name": "Canvas",
+  "author": "Grigory Kruglov",
+  "description": "Platform test",
+  
+  "imports": [
+    "js/game.js"
+  ]
+}

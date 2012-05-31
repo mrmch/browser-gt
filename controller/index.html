@@ -46,7 +46,7 @@
     
     <div id="main" role="main">
       <div id="debug"></div>
-      <ul id="controllers"></ul>
+      <ul id="screens"></ul>
     </div>
 
     <footer>
@@ -62,39 +62,57 @@
   
   <!-- Controller logic -->
   <script>
-    var socket = io.connect('http://127.0.0.1:8080'),
+    var socket = io.connect(window.location.origin),
         controller = {
           id: Math.round(Math.random() * 1000000000)
         },
-        controllers = [],
+        screens = [],
+        inGame = false,
         debug = function (msg) {
-          $("debug").html(msg);
+          $("#debug").html(msg);
+        },
+        
+        // emit is throttled to a max of emitRateMax emits per second
+        emitRateMax = 100, emitCounter = 0, emitRateCounterReset = 500,
+        
+        emitIsThrottled = function () {
+          if (emitCounter > emitRateMax) {
+            return true;
+          }
+          return false;
         };
+        
+    window.setInterval(function() {
+      emitCounter = 0;
+    }, emitRateCounterReset);
       
-    socket.on('updated controller list', function(updated_nodes) {
-      controllers = updated_nodes;
-      debug("Total nodes: " + controllers.length);
+    socket.on('updated screen list', function(updated_screens) {
+      screens = updated_screens;
+      debug("Total screens: " + screens.length);
+      console.log(screens);
       
-      $("#controllers").html("");
-      for (i in controllers) {
-        $("ul#controllers").append($("<li id='" + controllers[i] + "'></li>"));
+      $("#screens").html("");
+      for (var i in screens) {
+        $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + screens[i] + "'>" + screens[i] + "</a></li>"));
       }
     });
     
     socket.on('connect', function() {
       socket.emit('set controller_id', controller.id);
     });
-    
-    socket.on('new action', function(o) {
-      $("li#" +o[0]).html(o[1]['accelerometer'][0] + " - " + o[1]['accelerometer'][0]);
-    });
-    
+        
     socket.on('disconnect', function() {
       debug("Error connecting to the server.");
     });
     
     var tilt = function(o) {
+      if (!inGame || emitIsThrottled()) {
+        return;
+      }
+      
+      emitCounter += 1;
       socket.emit('action', {'accelerometer': o});
+      debug("Acc: " + o[0] + " : " + o[1]);
     };
     
     if (window.DeviceOrientationEvent) {
@@ -111,9 +129,20 @@
         }, true);
     }
     
+    $(function() {
+      $(".joinScreen").live('click', function() {
+        var screen_id = $(this).attr("id");
+        
+        socket.emit("join screen", screen_id);
+        inGame = true;
+        
+        $("ul#screens").hide();
+        debug("Joined screen");
+        
+        return false;
+      });
+    });
+    
   </script>
-  
-  <!-- Debugger - remove for production -->
-  <!-- <script src="https://getfirebug.com/firebug-lite.js"></script> -->
 </body>
 </html>

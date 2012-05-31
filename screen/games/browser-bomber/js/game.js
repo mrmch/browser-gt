@@ -3,8 +3,6 @@
  */
 var GAME = GAME || {
     'name': 'browser-bomber',
-    'author': 'Matt Harris',
-    'desc': 'Browser based bomberman clone',
     'map_width': 25,
     'map_height': 17,
     'tile_size': 32,
@@ -13,8 +11,31 @@ var GAME = GAME || {
         'height': 0
     },
     'players': {}
-};
+},
 
+container = $('#gameArea'),
+camera, controls, scene, renderer, light,
+container, stats,
+keyboard,
+microphysics,
+loader,
+
+MARGIN = 100,
+SCREEN_WIDTH = window.innerWidth * .90,
+SCREEN_HEIGHT = window.innerHeight * .90,
+FLOOR = -250,
+
+PAUSE_ANIMATION = false,
+
+simulateKeyPress = function(key, delay) {
+    // key must be in Crafty's keys array. No lower case letters!
+    var keyUp = function() {
+    Crafty.trigger("KeyUp", {key: Crafty.keys[key]});
+    }
+
+    Crafty.trigger('KeyDown', {key: Crafty.keys[key]});
+    window.setTimeout(keyUp, delay);
+};
 
 /**
  * Loading screen, loads our sprites
@@ -203,6 +224,7 @@ GAME.generateWorld = function() {
             .animate('walk_up',     0, 2, 4)
             .animate('walk_right',  0, 1, 4)
             .bind('NewDirection', function (direction) {
+                // console.log(direction.x + " - " + direction.y);
                 if (direction.x < 0) {
                     if (!this.isPlaying("walk_left"))
                         this.stop().animate("walk_left", 15, -1);
@@ -308,16 +330,16 @@ GAME.start = function() {
     Crafty.scene('loading');
 };
 
-GAME.init = function(window, width, height) {
+GAME.init = function() {
     /**
      * GAME.init
      * Intiates the game state
      */
 
     GAME.window = window;
-    GAME.screen.width = width;
-    GAME.screen.height = height;
-    Crafty.init(width, height);
+    GAME.screen.width = SCREEN_WIDTH;
+    GAME.screen.height = SCREEN_HEIGHT;
+    Crafty.init(SCREEN_WIDTH, SCREEN_HEIGHT);
     Crafty.canvas.init();
 
     Crafty.background('rgb(127,127,127)');
@@ -327,3 +349,18 @@ GAME.init = function(window, width, height) {
     GAME.sprite_base = '/screen/games/' + GAME.name + '/images/';
 };
 
+GAME.controller_action = function(controller_id, action) {
+    if (action.hasOwnProperty('accelerometer')) {
+        if (action.accelerometer[0] > 20) {
+            simulateKeyPress("S", 20);
+        } else if (action.accelerometer[0] < -20) {
+            simulateKeyPress("W", 20);
+        }
+        
+        if (action.accelerometer[1] > 20) {
+            simulateKeyPress("D", 20);
+        } else if (action.accelerometer[1] < -20) {
+            simulateKeyPress("A", 20);
+        }        
+    }
+}
