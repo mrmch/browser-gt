@@ -103,6 +103,7 @@
         
     socket.on('disconnect', function() {
       debug("Error connecting to the server.");
+      inGame = false;
     });
     
     var tilt = function(o) {
