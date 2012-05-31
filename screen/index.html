@@ -90,9 +90,13 @@
       $(function() {
         // load game information
         for (gameId in games) {
-          $.getJSON("/screen/games/" + games[gameId] + "/meta.json", function(data) {
-            $("#game_list").append("<li class='gameTitle' id='" + games[gameId] + "'>" + data.name + " (" + data.description +"). Created by " + data.author + "</li>");
-            gameData[games[gameId]] = data;
+          $.ajax({
+            url: "/screen/games/" + games[gameId] + "/meta.json",
+            dataType: 'json',
+            success: function(res) {
+              $("#game_list").append("<li class='gameTitle' id='" + games[gameId] + "'>" + res.name + " (" + res.description +"). Created by " + res.author + "</li>");
+              gameData[games[gameId]] = res;
+            }
           });
         }
         
