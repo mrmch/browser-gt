@@ -177,6 +177,23 @@ GAME.generateWorld = function() {
         }
     });
 
+    Crafty.c('DropsBombs', {
+        init: function() {
+            this.requires('Keyboard');
+        },
+        dropBombs: function() {
+            this.bind('KeyDown', function() {
+                if (this.isDown('ENTER')) {
+                    console.log('DROP BOMBS');
+                    console.log(this);
+                    Crafty.e('2D, DOM, bomb, bomb1')
+                        .attr({x: this._x, y: this._y, z: this._z});
+                }
+            });
+            return this;
+        }
+    });
+
     Crafty.c('Ape', {
         Ape: function() {
             // setup player animation
@@ -237,8 +254,10 @@ GAME.mainScreen = function() {
 
     // white player
     GAME.players.white = Crafty
-        .e('2D, DOM, WhiteSprite, Ape, LeftControls')
-        .attr(GAME.spawns[0]).leftControls(1)
+        .e('2D, DOM, WhiteSprite, Ape, LeftControls, DropsBombs')
+        .attr(GAME.spawns[0])
+        .dropBombs()
+        .leftControls(1)
         .Ape();
 
     GAME.players.red = Crafty
