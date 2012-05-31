@@ -95,8 +95,8 @@
             url: "/screen/games/" + games[gameId] + "/meta.json",
             dataType: 'json',
             success: function(res) {
-              $("#game_list").append("<li class='gameTitle' id='" + games[gameId] + "'>" + res.name + " (" + res.description +"). Created by " + res.author + "</li>");
-              gameData[games[gameId]] = res;
+              $("#game_list").append("<li class='gameTitle' id='" + res.id + "'>" + res.name + " (" + res.description +"). Created by " + res.author + "</li>");
+              gameData[res.id] = res;
             }
           });
         }
@@ -114,6 +114,7 @@
           
           // load game's js assets
           for (var i = 0; i < imports.length; i++) {
+            console.log('trying to import ' + i);
             loadJSAsset("games/" + game_id + "/" + imports[i]);
           }
           
@@ -129,3 +130,4 @@
     </script>
   </body>
 </html>
+
