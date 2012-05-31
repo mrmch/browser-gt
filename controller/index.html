@@ -73,7 +73,7 @@
         },
         
         // emit is throttled to a max of emitRateMax emits per second
-        emitRateMax = 10, emitCounter = 0, emitRateCounterReset = 500,
+        emitRateMax = 100, emitCounter = 0, emitRateCounterReset = 500,
         
         emitIsThrottled = function () {
           if (emitCounter > emitRateMax) {
@@ -93,7 +93,7 @@
       
       $("#screens").html("");
       for (var i in screens) {
-        $("ul#screens").append($("<li class='joinScreen' id='" + screens[i] + "'>click to join: " + screens[i] + "</li>"));
+        $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + screens[i] + "'>" + screens[i] + "</a></li>"));
       }
     });
     
@@ -112,6 +112,7 @@
       
       emitCounter += 1;
       socket.emit('action', {'accelerometer': o});
+      debug("Acc: " + o[0] + " : " + o[1]);
     };
     
     if (window.DeviceOrientationEvent) {
@@ -137,6 +138,8 @@
         
         $("ul#screens").hide();
         debug("Joined screen");
+        
+        return false;
       });
     });
     

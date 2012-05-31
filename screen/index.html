@@ -29,7 +29,7 @@
     <script src="/socket.io/socket.io.js"></script>
   
     <script>
-      var games = ['browser-bomber',],
+      var games = ['browser-bomber', 'canvas'],
         screen_id = Math.round(Math.random() * 1000000000),
         controllers = [],
         socket = io.connect(window.location.origin),
@@ -40,7 +40,7 @@
       function loadJSAsset(path) {
         var elem = document.createElement("script");
         elem.setAttribute("src", path);
-        
+                
         addToLoadingLog("Loading " + path);
         $('body').append(elem);
       }
@@ -61,14 +61,15 @@
         console.log("Controller joined in: " + controller_id);
         
         // notify the game
-        // GAME.new_controller()
+        GAME.player_joined(controller_id)
       });
       
       socket.on('controller left ' + screen_id, function(controller_id) {
         controllers.splice(controllers.indexOf(controller_id), 1);
         console.log("Controller left: " + controller_id);
         
-        // notify the game        
+        // notify the game     
+        GAME.player_left(controller_id);   
       });
       
       socket.on('new action ' + screen_id, function(o) {
