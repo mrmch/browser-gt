@@ -10,12 +10,19 @@ function tick() {
 }
 
 function addPlayer(player_id) {
-    players[player_id] = {x: 0, y: 0};
+    players[player_id] = {
+        x: 0, y: 0,
+        colour: {
+            r: Math.floor((Math.random()*255)+0),
+            g: Math.floor((Math.random()*255)+1),
+            b: Math.floor((Math.random()*100)+1)
+        }
+    };
     movePlayer(player_id, players[player_id]);
 }
 
 function drawPlayer(player_id) {
-    ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+    ctx.fillStyle = "rgba(" + players[player_id].colour.r + ", " + players[player_id].colour.g + ", " + players[player_id].colour.b + ", 0.5)";
     ctx.fillRect (players[player_id].x, players[player_id].y, 55, 50);
 }
 
