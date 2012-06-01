@@ -61,7 +61,7 @@ io.sockets.on('connection', function (socket) {
             controllers.splice(controllers.indexOf(controller_id), 1);
             
             socket.get('on_screen', function(err, screen_id) {
-                io.sockets.emit('controller left ' + screen_id, controllers);
+                io.sockets.emit('controller left ' + screen_id, controller_id);
             });
         });
         
