@@ -57,6 +57,10 @@ function drawTarget(target) {
     ctx.restore();
 }
 
+function playerWon(player_id) {
+    alert("We have a winner! " + player_id);
+}
+
 function movePlayer(player_id, direction) {    
     // set new position
     players[player_id].x += direction.x;
@@ -68,6 +72,9 @@ function movePlayer(player_id, direction) {
             // got a hit!
             players[player_id].score += 1;
             delete targets[i];
+            if (targets.length == 0) {
+                playerWon(player_id);
+            }
         }
     }
 }
