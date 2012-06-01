@@ -135,7 +135,8 @@
       
       ui: {
         updateScreenList: function() {
-          $("#screens").html("");
+          $("ul#screens").show();
+          $("ul#screens").html("");
 
           for (var i in Controller.screens) {
             $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
@@ -150,6 +151,7 @@
     };
     
     Controller.system.init();
+    
     
     // --- network code ---
             
