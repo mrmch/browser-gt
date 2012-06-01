@@ -152,3 +152,4 @@ var GAME = {
         $("#game_status").html("Player left! " + player_id);
     }
 }
+

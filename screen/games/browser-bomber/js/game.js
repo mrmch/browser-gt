@@ -2,15 +2,15 @@
  * GAME JS
  */
 var GAME = GAME || {
-    'name': 'browser-bomber',
-    'map_width': 25,
-    'map_height': 17,
-    'tile_size': 32,
-    'screen': {
+    name: 'browser-bomber',
+    map_width: 25,
+    map_height: 17,
+    tile_size: 32,
+    screen: {
         'width': 0,
         'height': 0
     },
-    'players': {}
+    players: {}
 },
 
 container = $('#gameArea'),
