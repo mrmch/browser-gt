@@ -32,7 +32,7 @@
             var games = ['browser-bomber', 'canvas'],
                 screen_id = Math.round(Math.random() * 1000000000),
                 controllers = [],
-                socket = io.connect(window.location.origin),
+                socket = io.connect(window.location.origin + "/screens"),
                 gameData = {},
                 inGame = false;
 
@@ -48,7 +48,7 @@
             function addToLoadingLog(message) {
                 $("#loadingLog").append("<li>" + message + "</li>");
             }
-
+            
             // --- communication with server and controllers ---
             socket.on('connect', function() {
                 // announce this screen to the server
@@ -61,7 +61,7 @@
                 console.log("Controller joined in: " + controller_id);
                 
                 // notify the game
-                GAME.player_joined(controller_id)
+                GAME.player_joined(controller_id);
             });
 
             socket.on('controller left ' + screen_id, function(controller_id) {

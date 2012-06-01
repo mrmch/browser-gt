@@ -62,7 +62,7 @@
   
   <!-- Controller logic -->
   <script>
-    var socket = io.connect(window.location.origin),
+    var socket = io.connect(window.location.origin + "/controllers"),
         controller = {
           id: Math.round(Math.random() * 1000000000)
         },
