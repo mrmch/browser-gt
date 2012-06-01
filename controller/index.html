@@ -60,85 +60,143 @@
   <script src="/controller/js/helper.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   
-  <!-- Controller logic -->
   <script>
-    var socket = io.connect(window.location.origin + "/controllers"),
-        controller = {
-          id: Math.round(Math.random() * 1000000000)
-        },
-        screens = [],
-        inGame = false,
-        debug = function (msg) {
-          $("#debug").html(msg);
+  
+    // --- controller API ---
+    
+    var Controller = {
+      id: Math.round(Math.random() * 1000000000),
+      socket: io.connect(window.location.origin + "/controllers"),
+      
+      screens: [],
+      
+      screen: {
+        id: 0,
+        
+        join: function(screen_id) {
+          Controller.socket.emit("join screen", screen_id);
+          Controller.screen.id = screen_id;
         },
         
-        // emit is throttled to a max of emitRateMax emits per second
-        emitRateMax = 100, emitCounter = 0, emitRateCounterReset = 500,
+        leave: function() {
+          if (Controller.screen.id) {
+            Controller.screen.id = 0;
+          }
+        }
+      },
+      
+      emit: {
+        rate_max: 30,
+        counter: 0,
+        reset_rate: 500,
         
-        emitIsThrottled = function () {
-          if (emitCounter > emitRateMax) {
+        resetCounter: function() {
+          Controller.emit.counter = 0;
+        },
+        
+        isThrottled: function () {
+          if (Controller.emit.counter > Controller.emit.rate_max) {
             return true;
           }
           return false;
-        };
+        }
+      },
+      
+      util: {
+        debug: function (msg) {
+          $("#debug").html(msg);
+        }
+      },
+      
+      system: {
+        emit_reset_id: 0,
         
-    window.setInterval(function() {
-      emitCounter = 0;
-    }, emitRateCounterReset);
-      
-    socket.on('updated screen list', function(updated_screens) {
-      screens = updated_screens;
-      debug("Total screens: " + screens.length);
-      console.log(screens);
-      
-      $("#screens").html("");
-      for (var i in screens) {
-        $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + screens[i] + "'>" + screens[i] + "</a></li>"));
-      }
-    });
-    
-    socket.on('connect', function() {
-      socket.emit('set controller_id', controller.id);
-    });
+        init: function() {
+          Controller.system.emit_reset_id = window.setInterval('Controller.emit.resetCounter()', Controller.emit.reset_rate);
+        },
         
-    socket.on('disconnect', function() {
-      debug("Error connecting to the server.");
-      inGame = false;
-    });
-    
-    var tilt = function(o) {
-      if (!inGame || emitIsThrottled()) {
-        return;
-      }
+        disconnected: function() {
+          Controller.screen.leave();
+        }
+      },
       
-      emitCounter += 1;
-      socket.emit('action', {'accelerometer': o});
-      debug("Acc: " + o[0] + " : " + o[1]);
+      actions: {
+        tilt: function(o) {
+          if (!Controller.screen.id || Controller.emit.isThrottled()) {
+            return;
+          }
+
+          Controller.emit.counter += 1;
+          Controller.socket.emit('action', {'accelerometer': o});
+
+          Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
+        }
+      },
+      
+      ui: {
+        updateScreenList: function() {
+          $("#screens").html("");
+
+          for (var i in Controller.screens) {
+            $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
+          }
+        },
+        
+        joinedScreen: function() {
+          $("ul#screens").hide();
+          Controller.util.debug("Joined screen " + Controller.screen.id);
+        }
+      }
     };
     
+    Controller.system.init();
+    
+    // --- network code ---
+            
+    Controller.socket.on('updated screen list', function(updated_screens) {
+      if (updated_screens.length == 0 && Controller.screen.id) {
+        Controller.screen.leave();
+      }
+      
+      Controller.screens = updated_screens;
+      Controller.util.debug("Total screens: " + Controller.screens.length);
+      
+      Controller.ui.updateScreenList();
+    });
+    
+    Controller.socket.on('connect', function() {
+      Controller.socket.emit('set controller_id', Controller.id);
+    });
+        
+    Controller.socket.on('disconnect', function() {
+      Controller.util.debug("Error connecting to the server.");
+      Controller.system.disconnected();
+    });
+    
+    
+    // --- sensors ---
+        
     if (window.DeviceOrientationEvent) {
         window.addEventListener("deviceorientation", function () {
-            tilt([event.beta, event.gamma]);
+            Controller.actions.tilt([event.beta, event.gamma]);
         }, true);
     } else if (window.DeviceMotionEvent) {
         window.addEventListener('devicemotion', function () {
-            tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
+            Controller.actions.tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
         }, true);
     } else {
         window.addEventListener("MozOrientation", function () {
-            tilt([orientation.x * 50, orientation.y * 50]);
+            Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
         }, true);
     }
     
+    
+    // --- ui interactions ---
+    
     $(function() {
       $(".joinScreen").live('click', function() {
-        var screen_id = $(this).attr("id");
-        
-        socket.emit("join screen", screen_id);
-        inGame = true;
-        
-        $("ul#screens").hide();
-        debug("Joined screen");
+        Controller.screen.join($(this).attr("id"));
+        Controller.ui.joinedScreen();
         
         return false;
       });
