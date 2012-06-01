@@ -146,9 +146,10 @@ var GAME = {
     },
     
     player_left: function(player_id) {
-        if (players.indexOf(player_id) != -1) {
-            players.splice(players.indexOf(player_id), 1);
+        if (player_id in players) {
+            delete players[player_id];
         }
+
         $("#game_status").html("Player left! " + player_id);
     }
 }
