@@ -7,6 +7,6 @@
   "actions": ["accelerometer"],
   
   "imports": [
-    "js/game.js"
+    "js/game.js",
   ]
 }
