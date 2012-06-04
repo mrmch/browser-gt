@@ -78,6 +78,9 @@ var GAME = GAME || {
                 simulateKeyPress("A", 20);
             }        
         }
+        if (action.hasOwnProperty('W')) {
+            GAME.players[player_id].e.trigger('W');
+        }
     },
 
     player_joined: function(player_id) {
@@ -271,6 +274,21 @@ var GAME = GAME || {
                 this.requires('Multiway');
             },
             leftControls: function(speed) {
+                this.multiway(speed, {
+                    W: -90,
+                    S: 90,
+                    D: 0,
+                    A: 180
+                });
+                return this;
+            }
+        });
+
+        Crafty.c('IOController', {
+            init: function() {
+                this.requires('Multiway');
+            },
+            IOController: function(speed) {
                 this.multiway(speed, {
                     W: -90,
                     S: 90,
