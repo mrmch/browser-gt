@@ -3,207 +3,208 @@
 <!--[if IEMobile 7 ]>    <html class="no-js iem7" lang="en"> <![endif]-->
 <!--[if (gt IEMobile 7)|!(IEMobile)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 
-<head>
-  <meta charset="utf-8">
+    <head>
+        <meta charset="utf-8">
 
-  <title>Game Controller</title>
-  <meta name="description" content="">
+        <title>Game Controller</title>
+        <meta name="description" content="">
 
-  <!-- Mobile viewport optimization h5bp.com/ad -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width">
+        <!-- Mobile viewport optimization h5bp.com/ad -->
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width">
 
-  <!-- For iPhone 4 with high-resolution Retina display: -->
-  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/h/apple-touch-icon.png">
-  <!-- For first-generation iPad: -->
-  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/m/apple-touch-icon.png">
-  <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
-  <link rel="apple-touch-icon-precomposed" href="img/l/apple-touch-icon-precomposed.png">
-  <!-- For nokia devices: -->
-  <link rel="shortcut icon" href="img/l/apple-touch-icon.png">
+        <!-- For iPhone 4 with high-resolution Retina display: -->
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/h/apple-touch-icon.png">
+        <!-- For first-generation iPad: -->
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/m/apple-touch-icon.png">
+        <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+        <link rel="apple-touch-icon-precomposed" href="img/l/apple-touch-icon-precomposed.png">
+        <!-- For nokia devices: -->
+        <link rel="shortcut icon" href="img/l/apple-touch-icon.png">
 
-  <!-- iOS web app, delete if not needed. https://github.com/h5bp/mobile-boilerplate/issues/94 -->
-  <!-- <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
-  <!-- <script>(function(){var a;if(navigator.platform==="iPad"){a=window.orientation!==90||window.orientation===-90?"img/startup-tablet-landscape.png":"img/startup-tablet-portrait.png"}else{a=window.devicePixelRatio===2?"img/startup-retina.png":"img/startup.png"}document.write('<link rel="apple-touch-startup-image" href="'+a+'"/>')})()</script> -->
-  
-  <!-- The script prevents links from opening in mobile safari. https://gist.github.com/1042026 -->
-  <!-- <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script> -->
-  
-  <meta http-equiv="cleartype" content="on">
-  <link rel="stylesheet" href="/controller/css/style.css">
+        <!-- iOS web app, delete if not needed. https://github.com/h5bp/mobile-boilerplate/issues/94 -->
+        <!-- <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
+        <!-- <script>(function(){var a;if(navigator.platform==="iPad"){a=window.orientation!==90||window.orientation===-90?"img/startup-tablet-landscape.png":"img/startup-tablet-portrait.png"}else{a=window.devicePixelRatio===2?"img/startup-retina.png":"img/startup.png"}document.write('<link rel="apple-touch-startup-image" href="'+a+'"/>')})()</script> -->
 
-  <script src="/controller/js/libs/modernizr-2.0.6.min.js"></script>
-</head>
+        <!-- The script prevents links from opening in mobile safari. https://gist.github.com/1042026 -->
+        <!-- <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script> -->
 
-<body>
+        <meta http-equiv="cleartype" content="on">
+        <link rel="stylesheet" href="/controller/css/style.css">
 
-  <div id="container">
-    <header>
+        <script src="/controller/js/libs/modernizr-2.0.6.min.js"></script>
+    </head>
 
-    </header>
-    
-    <div id="main" role="main">
-      <div id="debug"></div>
-      <ul id="screens"></ul>
-    </div>
+    <body>
 
-    <footer>
+        <div id="container">
+            <header>
 
-    </footer>
-  </div>
-
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="/controller/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
-
-  <script src="/controller/js/helper.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  
-  <script>
-  
-    // --- controller API ---
-    
-    var Controller = {
-      id: Math.round(Math.random() * 1000000000),
-      socket: io.connect(window.location.origin + "/controllers"),
-      
-      screens: [],
-      
-      screen: {
-        id: 0,
-        
-        join: function(screen_id) {
-          Controller.socket.emit("join screen", screen_id);
-          Controller.screen.id = screen_id;
-        },
-        
-        leave: function() {
-          if (Controller.screen.id) {
-            Controller.screen.id = 0;
-          }
-        }
-      },
-      
-      emit: {
-        rate_max: 30,
-        counter: 0,
-        reset_rate: 500,
-        
-        resetCounter: function() {
-          Controller.emit.counter = 0;
-        },
-        
-        isThrottled: function () {
-          if (Controller.emit.counter > Controller.emit.rate_max) {
-            return true;
-          }
-          return false;
-        }
-      },
-      
-      util: {
-        debug: function (msg) {
-          $("#debug").html(msg);
-        }
-      },
-      
-      system: {
-        emit_reset_id: 0,
-        
-        init: function() {
-          Controller.system.emit_reset_id = window.setInterval('Controller.emit.resetCounter()', Controller.emit.reset_rate);
-        },
-        
-        disconnected: function() {
-          Controller.screen.leave();
-        }
-      },
-      
-      actions: {
-        tilt: function(o) {
-          if (!Controller.screen.id || Controller.emit.isThrottled()) {
-            return;
-          }
-
-          Controller.emit.counter += 1;
-          Controller.socket.emit('action', {'accelerometer': o});
-
-          Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
-        }
-      },
-      
-      ui: {
-        updateScreenList: function() {
-          $("ul#screens").show();
-          $("ul#screens").html("");
-
-          for (var i in Controller.screens) {
-            $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
-          }
-        },
-        
-        joinedScreen: function() {
-          $("ul#screens").hide();
-          Controller.util.debug("Joined screen " + Controller.screen.id);
-        }
-      }
-    };
-    
-    Controller.system.init();
-    
-    
-    // --- network code ---
+            </header>
             
-    Controller.socket.on('updated screen list', function(updated_screens) {
-      if (updated_screens.length == 0 && Controller.screen.id) {
-        Controller.screen.leave();
-      }
-      
-      Controller.screens = updated_screens;
-      Controller.util.debug("Total screens: " + Controller.screens.length);
-      
-      Controller.ui.updateScreenList();
-    });
-    
-    Controller.socket.on('connect', function() {
-      Controller.socket.emit('set controller_id', Controller.id);
-    });
+            <div id="main" role="main">
+            <div id="debug"></div>
+            <ul id="screens"></ul>
+            </div>
+
+            <footer>
+
+            </footer>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/controller/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+
+        <script src="/controller/js/helper.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
         
-    Controller.socket.on('disconnect', function() {
-      Controller.util.debug("Error connecting to the server.");
-      Controller.system.disconnected();
-    });
-    
-    
-    // --- sensors ---
+        <script>
         
-    if (window.DeviceOrientationEvent) {
-        window.addEventListener("deviceorientation", function () {
-            Controller.actions.tilt([event.beta, event.gamma]);
-        }, true);
-    } else if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', function () {
-            Controller.actions.tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
-        }, true);
-    } else {
-        window.addEventListener("MozOrientation", function () {
-            Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
-        }, true);
-    }
-    
-    
-    // --- ui interactions ---
-    
-    $(function() {
-      $(".joinScreen").live('click', function() {
-        Controller.screen.join($(this).attr("id"));
-        Controller.ui.joinedScreen();
-        
-        return false;
-      });
-    });
-    
-  </script>
-</body>
+            // --- controller API ---
+            
+            var Controller = {
+                id: Math.round(Math.random() * 1000000000),
+                socket: io.connect(window.location.origin + "/controllers"),
+                
+                screens: [],
+                
+                screen: {
+                    id: 0,
+                    
+                    join: function(screen_id) {
+                        Controller.socket.emit("join screen", screen_id);
+                        Controller.screen.id = screen_id;
+                    },
+                    
+                    leave: function() {
+                        if (Controller.screen.id) {
+                            Controller.screen.id = 0;
+                        }
+                    }
+                },
+            
+                emit: {
+                    rate_max: 30,
+                    counter: 0,
+                    reset_rate: 500,
+                    
+                    resetCounter: function() {
+                        Controller.emit.counter = 0;
+                    },
+                    
+                    isThrottled: function () {
+                        if (Controller.emit.counter > Controller.emit.rate_max) {
+                            return true;
+                        }
+                        return false;
+                    }
+                },
+                
+                util: {
+                    debug: function (msg) {
+                        $("#debug").html(msg);
+                    }
+                },
+                
+                system: {
+                    emit_reset_id: 0,
+                    
+                    init: function() {
+                        Controller.system.emit_reset_id = window.setInterval('Controller.emit.resetCounter()', Controller.emit.reset_rate);
+                    },
+                    
+                    disconnected: function() {
+                        Controller.screen.leave();
+                    }
+                },
+                
+                actions: {
+                    tilt: function(o) {
+                        if (!Controller.screen.id || Controller.emit.isThrottled()) {
+                            return;
+                        }
+
+                        Controller.emit.counter += 1;
+                        Controller.socket.emit('action', {'accelerometer': o});
+
+                        Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
+                    }
+                },
+                
+                ui: {
+                    updateScreenList: function() {
+                        $("ul#screens").show();
+                        $("ul#screens").html("");
+
+                        for (var i in Controller.screens) {
+                            $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
+                        }
+                    },
+                    
+                    joinedScreen: function() {
+                        $("ul#screens").hide();
+                        Controller.util.debug("Joined screen " + Controller.screen.id);
+                    }
+                }
+            };
+                
+            Controller.system.init();
+                
+                
+            // --- network code ---
+                    
+            Controller.socket.on('updated screen list', function(updated_screens) {
+                if (updated_screens.length == 0 && Controller.screen.id) {
+                    Controller.screen.leave();
+                }
+                
+                Controller.screens = updated_screens;
+                Controller.util.debug("Total screens: " + Controller.screens.length);
+                
+                Controller.ui.updateScreenList();
+            });
+            
+            Controller.socket.on('connect', function() {
+                Controller.socket.emit('set controller_id', Controller.id);
+            });
+                
+            Controller.socket.on('disconnect', function() {
+                Controller.util.debug("Error connecting to the server.");
+                Controller.system.disconnected();
+            });
+            
+            
+            // --- sensors ---
+                
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener("deviceorientation", function () {
+                    Controller.actions.tilt([event.beta, event.gamma]);
+                }, true);
+            } else if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', function () {
+                    Controller.actions.tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
+                }, true);
+            } else {
+                window.addEventListener("MozOrientation", function () {
+                    Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
+                }, true);
+            }
+            
+            
+            // --- ui interactions ---
+            
+            $(function() {
+                $(".joinScreen").live('click', function() {
+                    Controller.screen.join($(this).attr("id"));
+                    Controller.ui.joinedScreen();
+                    
+                    return false;
+                });
+            });
+            
+        </script>
+    </body>
 </html>
+

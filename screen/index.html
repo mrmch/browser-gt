@@ -91,12 +91,18 @@
             $(function() {
                 // load game information
                 for (gameId in games) {
+                    console.log('loading game', games[gameId]);
                     $.ajax({
                         url: "/screen/games/" + games[gameId] + "/meta.json",
                         dataType: 'json',
                         success: function(res) {
-                        $("#game_list").append("<li class='gameTitle' id='" + res.id + "'>" + res.name + " (" + res.description +"). Created by " + res.author + "</li>");
-                        gameData[res.id] = res;
+                            $("#game_list")
+                                .append("<li class='gameTitle' id='" + 
+                                    res.id + "'>" + res.name + " (" + 
+                                    res.description +"). Created by " + 
+                                    res.author + "</li>"
+                            );
+                            gameData[res.id] = res;
                         }
                     });
                 }
