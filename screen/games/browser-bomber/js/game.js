@@ -17,16 +17,18 @@ simulateKeyPress = function(key, delay) {
     window.setTimeout(keyUp, delay);
 };
 */
+
 var MARGIN = 100,
     SCREEN_WIDTH = window.innerWidth * .90,
     SCREEN_HEIGHT = window.innerHeight * .90,
-    FLOOR = -250;
+    FLOOR = -250,
+    TILE_SIZE = 32;
 
 var GAME = GAME || {
     name: 'browser-bomber',
     map_width: 25,
     map_height: 17,
-    tile_size: 32,
+    tile_size: TILE_SIZE,
     max_players: 4,
     num_players: 0,
     screen: {
@@ -35,6 +37,25 @@ var GAME = GAME || {
     },
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
+
+    spawns: [{ 
+            x: 1 * TILE_SIZE,
+            y: 1 * TILE_SIZE,
+            z: 2,
+        }, { 
+            x: 1 * TILE_SIZE,
+            y: (this.map_height - 2) * TILE_SIZE,
+            z: 2,
+        }, { 
+            x: (this.map_width - 2) * TILE_SIZE,
+            y: 1 * TILE_SIZE,
+            z: 2,
+        }, { 
+            x: (this.map_width - 2) * TILE_SIZE,
+            y: (this.map_height - 2) * TILE_SIZE,
+            z: 2,
+        }
+    ],
 
     init: function() {
         /**
@@ -60,25 +81,23 @@ var GAME = GAME || {
          * GAME.start
          * starts the game
          */
-        console.log(GAME);
         Crafty.scene('loading');
     },
 
     controller_action: function(player_id, action) {
-        if (action.hasOwnProperty('accelerometer')) {
-            if (action.accelerometer[0] > 20) {
-                simulateKeyPress("S", 20);
-            } else if (action.accelerometer[0] < -20) {
-                simulateKeyPress("W", 20);
-            }
-            
-            if (action.accelerometer[1] > 20) {
-                simulateKeyPress("D", 20);
-            } else if (action.accelerometer[1] < -20) {
-                simulateKeyPress("A", 20);
-            }        
+        if (action.hasOwnProperty('LEFT')) {
+            GAME.players[player_id].e.trigger('W');
         }
-        if (action.hasOwnProperty('W')) {
+        if (action.hasOwnProperty('RIGHT')) {
+            GAME.players[player_id].e.trigger('W');
+        }
+        if (action.hasOwnProperty('UP')) {
+            GAME.players[player_id].e.trigger('W');
+        }
+        if (action.hasOwnProperty('DOWN')) {
+            GAME.players[player_id].e.trigger('W');
+        }
+        if (action.hasOwnProperty('ENTER')) {
             GAME.players[player_id].e.trigger('W');
         }
     },
@@ -189,25 +208,6 @@ var GAME = GAME || {
         var box = 'box' + Crafty.math.randomInt(1,2);
         var block = 'block' + Crafty.math.randomInt(1,2);
         
-        GAME.spawns = [
-            { 
-                x: 1 * GAME.tile_size,
-                y: 1 * GAME.tile_size,
-                z: 2,
-            }, { 
-                x: 1 * GAME.tile_size,
-                y: (GAME.map_height - 2) * GAME.tile_size,
-                z: 2,
-            }, { 
-                x: (GAME.map_width - 2) * GAME.tile_size,
-                y: 1 * GAME.tile_size,
-                z: 2,
-            }, { 
-                x: (GAME.map_width - 2) * GAME.tile_size,
-                y: (GAME.map_height - 2) * GAME.tile_size,
-                z: 2,
-            }
-        ];
 
         for (var i = 0; i < GAME.map_width; i++) {
             for (var j = 0; j < GAME.map_height; j++) {
@@ -251,7 +251,7 @@ var GAME = GAME || {
                             z: 2
                         })
                         .bind('explode', function() {
-                            this.destroy();
+                            GAME.destroy();
                         }
                     );
                     
@@ -307,9 +307,13 @@ var GAME = GAME || {
                 this.bind('KeyDown', function() {
                     if (this.isDown('ENTER')) {
                         console.log('DROP BOMBS');
-                        console.log(this);
+                        console.log(GAME);
                         Crafty.e('2D, DOM, bomb, bomb1')
-                            .attr({x: this._x, y: this._y, z: this._z});
+                            .attr({
+                                x: this._x, 
+                                y: this._y, 
+                                z: this._z
+                        });
                     }
                 });
                 return this;
@@ -372,31 +376,6 @@ var GAME = GAME || {
         */
 
         GAME.generateWorld();
-
-        /*
-        // white player
-        GAME.players.white = Crafty
-            .e('2D, DOM, WhiteSprite, Ape, LeftControls, DropsBombs')
-            .attr(GAME.spawns[0])
-            .dropBombs()
-            .leftControls(1)
-            .Ape();
-
-        GAME.players.red = Crafty
-            .e('2D, DOM, RedSprite, Ape, LeftControls')
-            .attr(GAME.spawns[1]).leftControls(1)
-            .Ape();
-
-        GAME.players.green = Crafty
-            .e('2D, DOM, GreenSprite, Ape, LeftControls')
-            .attr(GAME.spawns[2]).leftControls(1)
-            .Ape();
-
-        GAME.players.blue = Crafty
-            .e('2D, DOM, BlueSprite, Ape, LeftControls')
-            .attr(GAME.spawns[3]).leftControls(1)
-            .Ape();
-        */
     },
 
     tick: function() {
@@ -421,6 +400,5 @@ var GAME = GAME || {
         */
         return;
     },
-
 };
 

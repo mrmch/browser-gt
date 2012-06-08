@@ -45,8 +45,9 @@
             </header>
             
             <div id="main" role="main">
-            <div id="debug"></div>
-            <ul id="screens"></ul>
+                <div id="debug"></div>
+                <ul id="screens"></ul>
+                <canvas id="canvas" width="200" height="100"></canvas>
             </div>
 
             <footer>
@@ -177,6 +178,7 @@
             
             
             // --- sensors ---
+            /*
                 
             if (window.DeviceOrientationEvent) {
                 window.addEventListener("deviceorientation", function () {
@@ -191,6 +193,7 @@
                     Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
                 }, true);
             }
+            */
             
             
             // --- ui interactions ---
@@ -202,6 +205,10 @@
                     
                     return false;
                 });
+
+                var c = $('#canvas');
+                var ctx = c.getContext("2d");
+
             });
             
         </script>
