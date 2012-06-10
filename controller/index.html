@@ -47,7 +47,7 @@
             <div id="main" role="main">
                 <div id="debug"></div>
                 <ul id="screens"></ul>
-                <canvas id="canvas" width="200" height="100"></canvas>
+                <canvas id="canvas" width="400" height="200"></canvas>
             </div>
 
             <footer>
@@ -131,7 +131,19 @@
                         Controller.socket.emit('action', {'accelerometer': o});
 
                         Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
-                    }
+                    },
+
+                    button: function(o) {
+                        if (!Controller.screen.id || Controller.emit.isThrottled()) {
+                            return;
+                        }
+
+                        Controller.emit.counter += 1;
+                        Controller.socket.emit('action', {'button': o});
+
+                        Controller.util.debug("Button: " + o.action + " : " + o.state);
+                    },
+
                 },
                 
                 ui: {
@@ -194,19 +206,74 @@
                 }, true);
             }
             */
+
+            var gc;
+            var gceh;
+            var bs = 40; // BOX SIZE CONSTANT
+
+            var default_controllers = {
+                dpad: function(opts) {
+                    opts.x = opts.x || 0;
+                    opts.y = opts.y || 0;
+                    opts.box_size = opts.box_size || 40;
+                    opts.padding = opts.padding || 0;
+
+                    var buttons = [{
+                            x: opts.x + opts.box_size, 
+                            y: opts.y, 
+                            action: 'UP'
+                        }, {
+                            x: opts.x, 
+                            y: opts.y + opts.box_size, 
+                            action: 'LEFT'
+                        },  {
+                            x: opts.x + (opts.box_size * 2), 
+                            y: opts.y + opts.box_size, 
+                            action: 'RIGHT'
+                        }, {
+                            x: opts.x + opts.box_size, 
+                            y: opts.y + (opts.box_size * 2), 
+                            action: 'DOWN'
+                        }
+                    ]; 
+
+                    return buttons;
+                },
+
+                twoButtons: function(opts) {
+                    opts.x = opts.x || 0;
+                    opts.y = opts.y || 0;
+                    opts.box_size = opts.box_size || 40;
+                    opts.padding = opts.padding || 10;
+
+                    var buttons = [{
+                            x: opts.x + opts.box_size, 
+                            y: opts.y + opts.box_size, 
+                            action: 'BUTTON_A',
+                            fill: '#33FF00'
+                        }, {
+                            x: opts.x + opts.padding + (opts.box_size * 2), 
+                            y: opts.y + opts.box_size, 
+                            action: 'BUTTON_B',
+                            fill: '#33FF00'
+                        }
+                    ];
+                    return buttons; 
+                }
+            };
             
-            
-            //Box object to hold data for all drawn rects
             function Box() {
                 this.x = 0;
                 this.y = 0;
-                this.w = 1; // default width and height?
-                this.h = 1;
-                this.fill = '#444444';
-            }
+                this.w = bs; // default width and height?
+                this.h = bs;
+                this.fill = '#FF6600';
+                this.type = 'button'; // button or drag
+                this.action = '';
+                this.state = 'up';
+            };
 
             function GameController() {
-
                 this.canvas = null;
                 this.ctx = null;
                 this.WIDTH = 0;
@@ -249,13 +316,34 @@
                 this.boxes = [];
             };
 
-            GameController.prototype.addRect = function(x, y, w, h, fill) {
+            function GCEventHandler () {
+                this.myUp = function(e) {
+                    console.log('gceh', 'myup');
+                    gc.myUp(e); 
+                };
+
+                this.myDown = function(e) {
+                    console.log('gceh', 'mydown');
+                    gc.myDown(e);
+                };
+
+                this.myMove = function(e) {
+                    console.log('gceh', 'mymove');
+                    gc.myMove(e);
+                }
+            };
+
+            GameController.prototype.addRect = function(opts) {
+                // opts = {x, y, w, h, fill}
+                console.log('gc', 'addRect', opts);
                 var rect = new Box;
-                rect.x = x;
-                rect.y = y;
-                rect.w = w
-                rect.h = h;
-                rect.fill = fill;
+                rect.x = opts.x || rect.x;
+                rect.y = opts.y || rect.y;
+                rect.w = opts.w || rect.w;
+                rect.h = opts.h || rect.h;
+                rect.fill = opts.fill || rect.fill;
+                rect.type = opts.type || rect.type;
+                rect.action = opts.action || rect.action;
                 this.boxes.push(rect);
                 this.invalidate();
             }
@@ -284,22 +372,35 @@
                     this.styleBorderTop   = parseInt(document.defaultView.getComputedStyle(this.canvas, null)['borderTopWidth'], 10)   || 0;
                 }
                 
-                // make draw() fire every INTERVAL milliseconds.
-                setInterval(this.draw, this.INTERVAL);
-                
                 // add our events. Up and down are for dragging,
                 // double click is for making new boxes
-                this.canvas.onmousedown = this.myDown;
-                this.canvas.onmouseup = this.myUp;
+                this.canvas.onmousedown = gceh.myDown;
+                this.canvas.onmouseup = gceh.myUp;
                 
                 // add custom initialization here:
                 
                 // add an orange rectangle
-                this.addRect(200, 200, 40, 40, '#FFC02B');
-                
-                // add a smaller blue rectangle
-                this.addRect(25, 90, 25, 25, '#2BB8FF');
+                var controls = default_controllers.dpad({
+                    x: 0,
+                    y: 0,
+                    box_size: bs
+                });
 
+                var buttons = default_controllers.twoButtons({
+                    x: 100,
+                    y: 0,
+                    box_size: bs
+                });
+
+                for (i = 0; i < controls.length; i++) {
+                    this.addRect(controls[i]);
+                }
+                for (i = 0; i < buttons.length; i++) {
+                    this.addRect(buttons[i]);
+                }
+
+                // make draw() fire every INTERVAL milliseconds.
+                setInterval(gc.draw, gc.INTERVAL);
             };
 
             GameController.prototype.clear = function(c) {
@@ -311,6 +412,7 @@
                 // While draw is called as often as the INTERVAL variable demands,
                 // It only ever does something if the canvas gets invalidated by our code
                 if (this.canvasValid == false) {
+                    console.log('gc', 'draw');
                     this.clear(this.ctx);
 
                     // Add stuff you want drawn in the background all the time here
@@ -338,6 +440,8 @@
                 
                     // Add stuff you want drawn on top all the time here
                     this.canvasValid = true;
+                } else {
+                    //console.log('gc', 'draw');
                 }
             };
 
@@ -355,10 +459,11 @@
                 // Happens when the mouse is clicked in the canvas
                 this.getMouse(e);
                 this.clear(this.gctx); // clear the ghost canvas from its last use
+
+                console.log('gc', 'myDown', 'checking for box');
                 
                 // run through all the boxes
-                var l = this.boxes.length;
-                for (var i = l-1; i >= 0; i--) {
+                for (var i = 0; i < this.boxes.length; i++) {
                     // draw shape onto ghost context
                     this.drawshape(this.gctx, this.boxes[i], 'black');
                 
@@ -370,15 +475,26 @@
                     // if the mouse pixel exists, select and break
                     if (imageData.data[3] > 0) {
                         this.mySel = this.boxes[i];
-                        this.offsetx = this.mx - this.mySel.x;
-                        this.offsety = this.my - this.mySel.y;
-                        this.mySel.x = this.mx - this.offsetx;
-                        this.mySel.y = this.my - this.offsety;
-                        this.isDrag = true;
-                        this.canvas.onmousemove = this.myMove;
-                        this.invalidate();
-                        this.clear(this.gctx);
-                        return;
+
+                        if (this.mySel.type == 'button') {
+                            // got a button click!
+                            this.mySel.state = 'down';
+                            Controller.actions.button(this.mySel); 
+                            console.log('gc', 'myDown', 'clicked a button!');
+                            return;
+                        } else {
+                            // we will default this to a "drag" then
+                            this.offsetx = this.mx - this.mySel.x;
+                            this.offsety = this.my - this.mySel.y;
+                            this.mySel.x = this.mx - this.offsetx;
+                            this.mySel.y = this.my - this.offsety;
+                            this.isDrag = true;
+                            this.canvas.onmousemove = gceh.myMove;
+                            this.invalidate();
+                            this.clear(this.gctx);
+                            console.log('gc', 'myDown', 'clicked a box!');
+                            return;
+                        }
                     }
 
                 }
@@ -397,11 +513,25 @@
                 // Happens when the mouse is moving inside the canvas
                 if (this.isDrag){
                     this.getMouse(e);
+
+                    var boxLeft = this.mySel.x;
+                    var boxRight = this.mySel.x + this.mySel.w;
+                    var boxTop = this.mySel.y;
+                    var boxBot = this.mySel.y + this.mySel.h;
+                    
+                    if (this.mx > boxRight ||
+                        this.mx < boxLeft ||
+                        this.my < boxTop ||
+                        this.my > boxBot) {
+                        // end our drag
+                        this.mySel.x = this.mx - this.offsetx;
+                        this.mySel.y = this.my - this.offsety;   
                 
-                    this.mySel.x = this.mx - this.offsetx;
-                    this.mySel.y = this.my - this.offsety;   
-                
-                    // something is changing position so we better invalidate the canvas!
+                        // something is changing position so we better invalidate the canvas!
+                        this.isDrag = false;
+                        this.canvas.onmousemove = null;
+                        console.log('gc', 'myMove', 'no longer on box');
+                    }
                     this.invalidate();
                 }
             };
@@ -445,7 +575,9 @@
                     Controller.screen.join($(this).attr("id"));
                     Controller.ui.joinedScreen();
 
-                    var gc = new GameController();
+                    gceh = new GCEventHandler();
+
+                    gc = new GameController();
                     gc.init();
                     
                     return false;

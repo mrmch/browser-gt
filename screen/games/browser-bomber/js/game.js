@@ -85,21 +85,28 @@ var GAME = GAME || {
     },
 
     controller_action: function(player_id, action) {
-        if (action.hasOwnProperty('LEFT')) {
-            GAME.players[player_id].e.trigger('W');
+        console.log('G', 'controller_action', player_id, action);
+        if (action.hasOwnProperty('button')) {
+            var button_pressed = action.button.action;
+            console.log('G', 'controller_action', 'pressed', button_pressed);
+
+            if (button_pressed == "LEFT") {
+                GAME.players[player_id].e.trigger('A');
+            }
+            if (button_pressed == 'RIGHT') {
+                GAME.players[player_id].e.trigger('D');
+            }
+            if (button_pressed == 'UP') {
+                GAME.players[player_id].e.trigger('W');
+            }
+            if (button_pressed == 'DOWN') {
+                GAME.players[player_id].e.trigger('S');
+            }
+            if (button_pressed == 'BUTTON_A') {
+                GAME.players[player_id].e.trigger('ENTER');
+            }
         }
-        if (action.hasOwnProperty('RIGHT')) {
-            GAME.players[player_id].e.trigger('W');
-        }
-        if (action.hasOwnProperty('UP')) {
-            GAME.players[player_id].e.trigger('W');
-        }
-        if (action.hasOwnProperty('DOWN')) {
-            GAME.players[player_id].e.trigger('W');
-        }
-        if (action.hasOwnProperty('ENTER')) {
-            GAME.players[player_id].e.trigger('W');
-        }
+
     },
 
     player_joined: function(player_id) {
@@ -122,7 +129,7 @@ var GAME = GAME || {
         GAME.players[player_id] = {
             e: Crafty
                 .e('2D, DOM, ' + colour + 'Sprite, Ape, LeftControls, DropsBombs')
-                .attr(GAME.spawns[0])
+                .attr(GAME.spawns[GAME.num_players])
                 .dropBombs()
                 .leftControls(1)
                 .Ape(),
