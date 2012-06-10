@@ -47,7 +47,7 @@
             <div id="main" role="main">
                 <div id="debug"></div>
                 <ul id="screens"></ul>
-                <canvas id="canvas" width="400" height="200"></canvas>
+                <canvas id="canvas" width="700" height="200"></canvas>
             </div>
 
             <footer>
@@ -250,27 +250,31 @@
                             x: opts.x + opts.box_size, 
                             y: opts.y + opts.box_size, 
                             action: 'BUTTON_A',
-                            fill: '#33FF00'
+                            fill: '#33FF00',
+                            fireOnce: true
                         }, {
                             x: opts.x + opts.padding + (opts.box_size * 2), 
                             y: opts.y + opts.box_size, 
                             action: 'BUTTON_B',
-                            fill: '#33FF00'
+                            fill: '#33FF00',
+                            fireOnce: true
                         }
                     ];
                     return buttons; 
                 }
             };
             
-            function Box() {
-                this.x = 0;
-                this.y = 0;
-                this.w = bs; // default width and height?
-                this.h = bs;
-                this.fill = '#FF6600';
-                this.type = 'button'; // button or drag
-                this.action = '';
-                this.state = 'up';
+            function Box(opts) {
+                console.log('creating box', opts);
+                this.x = opts.x || 0;
+                this.y = opts.y || 0;
+                this.w = opts.w || bs;
+                this.h = opts.h || bs;
+                this.fill = opts.fill || '#FF6600';
+                this.type = opts.type || 'button';
+                this.action = opts.action || '';
+                this.fireOnce = opts.fireOnce || false;
+                this.state = opts.state || 'up';
             };
 
             function GameController() {
@@ -336,14 +340,7 @@
             GameController.prototype.addRect = function(opts) {
                 // opts = {x, y, w, h, fill}
                 console.log('gc', 'addRect', opts);
-                var rect = new Box;
-                rect.x = opts.x || rect.x;
-                rect.y = opts.y || rect.y;
-                rect.w = opts.w || rect.w;
-                rect.h = opts.h || rect.h;
-                rect.fill = opts.fill || rect.fill;
-                rect.type = opts.type || rect.type;
-                rect.action = opts.action || rect.action;
+                var rect = new Box(opts);
                 this.boxes.push(rect);
                 this.invalidate();
             }
@@ -400,7 +397,7 @@
                 }
 
                 // make draw() fire every INTERVAL milliseconds.
-                setInterval(gc.draw, gc.INTERVAL);
+                setInterval(function(){ gc.draw(); }, gc.INTERVAL);
             };
 
             GameController.prototype.clear = function(c) {
@@ -411,9 +408,17 @@
             GameController.prototype.draw = function() {
                 // While draw is called as often as the INTERVAL variable demands,
                 // It only ever does something if the canvas gets invalidated by our code
+                if (this.mySel !== null) {
+                    Controller.actions.button(this.mySel); 
+                    if (this.mySel.fireOnce)
+                        this.mySel = null;
+                }
+
                 if (this.canvasValid == false) {
                     console.log('gc', 'draw');
                     this.clear(this.ctx);
+                    this.ctx.canvas.width  = window.innerWidth * .9;
+                    this.ctx.canvas.height = window.innerHeight * .9;
 
                     // Add stuff you want drawn in the background all the time here
                 
@@ -479,7 +484,7 @@
                         if (this.mySel.type == 'button') {
                             // got a button click!
                             this.mySel.state = 'down';
-                            Controller.actions.button(this.mySel); 
+                            //Controller.actions.button(this.mySel); 
                             console.log('gc', 'myDown', 'clicked a button!');
                             return;
                         } else {
@@ -539,6 +544,7 @@
             GameController.prototype.myUp = function() {
                 this.isDrag = false;
                 this.canvas.onmousemove = null;
+                this.mySel = null;
             };
 
             GameController.prototype.getMouse = function (e) {

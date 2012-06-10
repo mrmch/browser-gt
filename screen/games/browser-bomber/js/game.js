@@ -38,24 +38,6 @@ var GAME = GAME || {
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
 
-    spawns: [{ 
-            x: 1 * TILE_SIZE,
-            y: 1 * TILE_SIZE,
-            z: 2,
-        }, { 
-            x: 1 * TILE_SIZE,
-            y: (this.map_height - 2) * TILE_SIZE,
-            z: 2,
-        }, { 
-            x: (this.map_width - 2) * TILE_SIZE,
-            y: 1 * TILE_SIZE,
-            z: 2,
-        }, { 
-            x: (this.map_width - 2) * TILE_SIZE,
-            y: (this.map_height - 2) * TILE_SIZE,
-            z: 2,
-        }
-    ],
 
     init: function() {
         /**
@@ -89,22 +71,7 @@ var GAME = GAME || {
         if (action.hasOwnProperty('button')) {
             var button_pressed = action.button.action;
             console.log('G', 'controller_action', 'pressed', button_pressed);
-
-            if (button_pressed == "LEFT") {
-                GAME.players[player_id].e.trigger('A');
-            }
-            if (button_pressed == 'RIGHT') {
-                GAME.players[player_id].e.trigger('D');
-            }
-            if (button_pressed == 'UP') {
-                GAME.players[player_id].e.trigger('W');
-            }
-            if (button_pressed == 'DOWN') {
-                GAME.players[player_id].e.trigger('S');
-            }
-            if (button_pressed == 'BUTTON_A') {
-                GAME.players[player_id].e.trigger('ENTER');
-            }
+            GAME.players[player_id].e.trigger(button_pressed);
         }
 
     },
@@ -128,10 +95,10 @@ var GAME = GAME || {
 
         GAME.players[player_id] = {
             e: Crafty
-                .e('2D, DOM, ' + colour + 'Sprite, Ape, LeftControls, DropsBombs')
+                .e('2D, DOM, ' + colour + 'Sprite, Ape, IOControls, DropsBombs')
                 .attr(GAME.spawns[GAME.num_players])
                 .dropBombs()
-                .leftControls(1)
+                .IOControls(1)
                 .Ape(),
             id: player_id,
             score: 0,
@@ -276,52 +243,45 @@ var GAME = GAME || {
             }
         }
 
-        Crafty.c('LeftControls', {
-            init: function() {
-                this.requires('Multiway');
-            },
-            leftControls: function(speed) {
-                this.multiway(speed, {
-                    W: -90,
-                    S: 90,
-                    D: 0,
-                    A: 180
-                });
-                return this;
-            }
-        });
+        Crafty.c('IOControls', {
+            __move: {left: false, right: false, up: false, down: false},
+            _speed: 10,
 
-        Crafty.c('IOController', {
-            init: function() {
-                this.requires('Multiway');
-            },
-            IOController: function(speed) {
-                this.multiway(speed, {
-                    W: -90,
-                    S: 90,
-                    D: 0,
-                    A: 180
+            IOControls: function(speed) {
+                if (speed) this._speed = speed;
+                var move = this.__move;
+
+                this.bind('LEFT', function(e) {
+                    var from = {x: this.x, y: this.y};
+                    this.x -= this._speed; 
+                    this.trigger('Moved', from);
+                }).bind('RIGHT', function(e) {
+                    var from = {x: this.x, y: this.y};
+                    this.x += this._speed;
+                    this.trigger('Moved', from);
+                }).bind('UP', function(e) {
+                    var from = {x: this.x, y: this.y};
+                    this.y -= this._speed;
+                    this.trigger('Moved', from);
+                }).bind('DOWN', function(e) {
+                    var from = {x: this.x, y: this.y};
+                    this.y += this._speed;
+                    this.trigger('Moved', from);
                 });
+
                 return this;
             }
         });
 
         Crafty.c('DropsBombs', {
-            init: function() {
-                this.requires('Keyboard');
-            },
-            dropBombs: function() {
-                this.bind('KeyDown', function() {
-                    if (this.isDown('ENTER')) {
-                        console.log('DROP BOMBS');
-                        console.log(GAME);
-                        Crafty.e('2D, DOM, bomb, bomb1')
-                            .attr({
-                                x: this._x, 
-                                y: this._y, 
-                                z: this._z
-                        });
-                    }
+            DropBombs: function() {
+                this.bind('BUTTON_A', function() {
+                    Crafty.e('2D, DOM, bomb, bomb1')
+                    .attr({
+                        x: this._x, 
+                        y: this._y, 
+                        z: this._z
+                    });
                 });
                 return this;
             }
@@ -335,27 +295,18 @@ var GAME = GAME || {
                 .animate('walk_left',   0, 3, 4)
                 .animate('walk_up',     0, 2, 4)
                 .animate('walk_right',  0, 1, 4)
-                .bind('NewDirection', function (direction) {
-                    // console.log(direction.x + " - " + direction.y);
-                    if (direction.x < 0) {
-                        if (!this.isPlaying("walk_left"))
-                            this.stop().animate("walk_left", 15, -1);
-                    }
-                    if (direction.x > 0) {
-                        if (!this.isPlaying("walk_right"))
-                            this.stop().animate("walk_right", 15, -1);
-                    }
-                    if (direction.y < 0) {
-                        if (!this.isPlaying("walk_up"))
-                            this.stop().animate("walk_up", 5, -1);
-                    }
-                    if (direction.y > 0) {
-                        if (!this.isPlaying("walk_down"))
-                            this.stop().animate("walk_down", 5, -1);
-                    }
-                    if(!direction.x && !direction.y) {
-                        this.stop();
-                    }
+                .bind('LEFT', function(e) {
+                    if (!this.isPlaying("walk_left"))
+                        this.stop().animate("walk_left", 15);
+                }).bind('RIGHT', function(e) {
+                    if (!this.isPlaying("walk_right"))
+                        this.stop().animate("walk_right", 15);
+                }).bind('UP', function(e) {
+                    if (!this.isPlaying("walk_up"))
+                        this.stop().animate("walk_up", 15);
+                }).bind('DOWN', function(e) {
+                    if (!this.isPlaying("walk_down"))
+                        this.stop().animate("walk_down", 15);
                 }).onHit('solid', function () {
                     // we dont like hitting solids :( 
                     return;
@@ -408,4 +359,22 @@ var GAME = GAME || {
         return;
     },
 };
+
+GAME.spawns = [{ 
+    x: 1 * TILE_SIZE,
+    y: 1 * TILE_SIZE,
+    z: 2,
+}, { 
+    x: 1 * TILE_SIZE,
+    y: (GAME.map_height - 2) * TILE_SIZE,
+    z: 2,
+}, { 
+    x: (GAME.map_width - 2) * TILE_SIZE,
+    y: 1 * TILE_SIZE,
+    z: 2,
+}, { 
+    x: (GAME.map_width - 2) * TILE_SIZE,
+    y: (GAME.map_height - 2) * TILE_SIZE,
+    z: 2,
+}];
 
