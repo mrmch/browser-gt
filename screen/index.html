@@ -25,7 +25,7 @@
 
         <div id="gameArea"></div>
 
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script src="/screen/games/browser-bomber/js/jquery-1.7.2.js"></script>
         <script src="/socket.io/socket.io.js"></script>
 
         <script>
@@ -91,12 +91,18 @@
             $(function() {
                 // load game information
                 for (gameId in games) {
+                    console.log('loading game', games[gameId]);
                     $.ajax({
                         url: "/screen/games/" + games[gameId] + "/meta.json",
                         dataType: 'json',
                         success: function(res) {
-                        $("#game_list").append("<li class='gameTitle' id='" + res.id + "'>" + res.name + " (" + res.description +"). Created by " + res.author + "</li>");
-                        gameData[res.id] = res;
+                            $("#game_list")
+                                .append("<li class='gameTitle' id='" + 
+                                    res.id + "'>" + res.name + " (" + 
+                                    res.description +"). Created by " + 
+                                    res.author + "</li>"
+                            );
+                            gameData[res.id] = res;
                         }
                     });
                 }

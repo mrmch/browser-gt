@@ -1,12 +1,21 @@
 {
-  "name": "Browser Bomber",
-  "id": "browser-bomber",
-  "author": "Matt Harris, Grigory Kruglov",
-  "description": "Browser based bomberman clone",
+    "name":         "Browser Bomber",
+    "id":           "browser-bomber",
+    "author":       "Matt Harris, Grigory Kruglov",
+    "description":  "Browser based bomberman clone",
+
+    "actions": [
+        "LEFT",
+        "RIGHT",
+        "UP",
+        "DOWN",
+        "ENTER"
+    ],
   
-  "imports": [
-    "js/crafty-min.js",
-    "js/components/crafty-debug-bar-release.js",
-    "js/game.js"
-  ]
+    "imports": [
+        "js/crafty-min.js",
+        "js/components/crafty-debug-bar-release.js",
+        "js/game.js"
+    ]
 }
+

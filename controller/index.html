@@ -3,207 +3,596 @@
 <!--[if IEMobile 7 ]>    <html class="no-js iem7" lang="en"> <![endif]-->
 <!--[if (gt IEMobile 7)|!(IEMobile)]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
 
-<head>
-  <meta charset="utf-8">
+    <head>
+        <meta charset="utf-8">
 
-  <title>Game Controller</title>
-  <meta name="description" content="">
+        <title>Game Controller</title>
+        <meta name="description" content="">
 
-  <!-- Mobile viewport optimization h5bp.com/ad -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width">
+        <!-- Mobile viewport optimization h5bp.com/ad -->
+        <meta name="HandheldFriendly" content="True">
+        <meta name="MobileOptimized" content="320">
+        <meta name="viewport" content="width=device-width">
 
-  <!-- For iPhone 4 with high-resolution Retina display: -->
-  <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/h/apple-touch-icon.png">
-  <!-- For first-generation iPad: -->
-  <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/m/apple-touch-icon.png">
-  <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
-  <link rel="apple-touch-icon-precomposed" href="img/l/apple-touch-icon-precomposed.png">
-  <!-- For nokia devices: -->
-  <link rel="shortcut icon" href="img/l/apple-touch-icon.png">
+        <!-- For iPhone 4 with high-resolution Retina display: -->
+        <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/h/apple-touch-icon.png">
+        <!-- For first-generation iPad: -->
+        <link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/m/apple-touch-icon.png">
+        <!-- For non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
+        <link rel="apple-touch-icon-precomposed" href="img/l/apple-touch-icon-precomposed.png">
+        <!-- For nokia devices: -->
+        <link rel="shortcut icon" href="img/l/apple-touch-icon.png">
 
-  <!-- iOS web app, delete if not needed. https://github.com/h5bp/mobile-boilerplate/issues/94 -->
-  <!-- <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
-  <!-- <script>(function(){var a;if(navigator.platform==="iPad"){a=window.orientation!==90||window.orientation===-90?"img/startup-tablet-landscape.png":"img/startup-tablet-portrait.png"}else{a=window.devicePixelRatio===2?"img/startup-retina.png":"img/startup.png"}document.write('<link rel="apple-touch-startup-image" href="'+a+'"/>')})()</script> -->
-  
-  <!-- The script prevents links from opening in mobile safari. https://gist.github.com/1042026 -->
-  <!-- <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script> -->
-  
-  <meta http-equiv="cleartype" content="on">
-  <link rel="stylesheet" href="/controller/css/style.css">
+        <!-- iOS web app, delete if not needed. https://github.com/h5bp/mobile-boilerplate/issues/94 -->
+        <!-- <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"> -->
+        <!-- <script>(function(){var a;if(navigator.platform==="iPad"){a=window.orientation!==90||window.orientation===-90?"img/startup-tablet-landscape.png":"img/startup-tablet-portrait.png"}else{a=window.devicePixelRatio===2?"img/startup-retina.png":"img/startup.png"}document.write('<link rel="apple-touch-startup-image" href="'+a+'"/>')})()</script> -->
 
-  <script src="/controller/js/libs/modernizr-2.0.6.min.js"></script>
-</head>
+        <!-- The script prevents links from opening in mobile safari. https://gist.github.com/1042026 -->
+        <!-- <script>(function(a,b,c){if(c in b&&b[c]){var d,e=a.location,f=/^(a|html)$/i;a.addEventListener("click",function(a){d=a.target;while(!f.test(d.nodeName))d=d.parentNode;"href"in d&&(d.href.indexOf("http")||~d.href.indexOf(e.host))&&(a.preventDefault(),e.href=d.href)},!1)}})(document,window.navigator,"standalone")</script> -->
 
-<body>
+        <meta http-equiv="cleartype" content="on">
+        <link rel="stylesheet" href="/controller/css/style.css">
 
-  <div id="container">
-    <header>
+        <script src="/controller/js/libs/modernizr-2.0.6.min.js"></script>
+    </head>
 
-    </header>
-    
-    <div id="main" role="main">
-      <div id="debug"></div>
-      <ul id="screens"></ul>
-    </div>
+    <body>
 
-    <footer>
+        <div id="container">
+            <header>
 
-    </footer>
-  </div>
-
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-  <script>window.jQuery || document.write('<script src="/controller/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
-
-  <script src="/controller/js/helper.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  
-  <script>
-  
-    // --- controller API ---
-    
-    var Controller = {
-      id: Math.round(Math.random() * 1000000000),
-      socket: io.connect(window.location.origin + "/controllers"),
-      
-      screens: [],
-      
-      screen: {
-        id: 0,
-        
-        join: function(screen_id) {
-          Controller.socket.emit("join screen", screen_id);
-          Controller.screen.id = screen_id;
-        },
-        
-        leave: function() {
-          if (Controller.screen.id) {
-            Controller.screen.id = 0;
-          }
-        }
-      },
-      
-      emit: {
-        rate_max: 30,
-        counter: 0,
-        reset_rate: 500,
-        
-        resetCounter: function() {
-          Controller.emit.counter = 0;
-        },
-        
-        isThrottled: function () {
-          if (Controller.emit.counter > Controller.emit.rate_max) {
-            return true;
-          }
-          return false;
-        }
-      },
-      
-      util: {
-        debug: function (msg) {
-          $("#debug").html(msg);
-        }
-      },
-      
-      system: {
-        emit_reset_id: 0,
-        
-        init: function() {
-          Controller.system.emit_reset_id = window.setInterval('Controller.emit.resetCounter()', Controller.emit.reset_rate);
-        },
-        
-        disconnected: function() {
-          Controller.screen.leave();
-        }
-      },
-      
-      actions: {
-        tilt: function(o) {
-          if (!Controller.screen.id || Controller.emit.isThrottled()) {
-            return;
-          }
-
-          Controller.emit.counter += 1;
-          Controller.socket.emit('action', {'accelerometer': o});
-
-          Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
-        }
-      },
-      
-      ui: {
-        updateScreenList: function() {
-          $("ul#screens").show();
-          $("ul#screens").html("");
-
-          for (var i in Controller.screens) {
-            $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
-          }
-        },
-        
-        joinedScreen: function() {
-          $("ul#screens").hide();
-          Controller.util.debug("Joined screen " + Controller.screen.id);
-        }
-      }
-    };
-    
-    Controller.system.init();
-    
-    
-    // --- network code ---
+            </header>
             
-    Controller.socket.on('updated screen list', function(updated_screens) {
-      if (updated_screens.length == 0 && Controller.screen.id) {
-        Controller.screen.leave();
-      }
-      
-      Controller.screens = updated_screens;
-      Controller.util.debug("Total screens: " + Controller.screens.length);
-      
-      Controller.ui.updateScreenList();
-    });
-    
-    Controller.socket.on('connect', function() {
-      Controller.socket.emit('set controller_id', Controller.id);
-    });
+            <div id="main" role="main">
+                <div id="debug"></div>
+                <ul id="screens"></ul>
+                <canvas id="canvas" width="700" height="200"></canvas>
+            </div>
+
+            <footer>
+
+            </footer>
+        </div>
+
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="/controller/js/libs/jquery-1.7.1.min.js"><\/script>')</script>
+
+        <script src="/controller/js/helper.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
         
-    Controller.socket.on('disconnect', function() {
-      Controller.util.debug("Error connecting to the server.");
-      Controller.system.disconnected();
-    });
-    
-    
-    // --- sensors ---
+        <script>
         
-    if (window.DeviceOrientationEvent) {
-        window.addEventListener("deviceorientation", function () {
-            Controller.actions.tilt([event.beta, event.gamma]);
-        }, true);
-    } else if (window.DeviceMotionEvent) {
-        window.addEventListener('devicemotion', function () {
-            Controller.actions.tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
-        }, true);
-    } else {
-        window.addEventListener("MozOrientation", function () {
-            Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
-        }, true);
-    }
-    
-    
-    // --- ui interactions ---
-    
-    $(function() {
-      $(".joinScreen").live('click', function() {
-        Controller.screen.join($(this).attr("id"));
-        Controller.ui.joinedScreen();
-        
-        return false;
-      });
-    });
-    
-  </script>
-</body>
+            // --- controller API ---
+            
+            var Controller = {
+                id: Math.round(Math.random() * 1000000000),
+                socket: io.connect(window.location.origin + "/controllers"),
+                
+                screens: [],
+                
+                screen: {
+                    id: 0,
+                    
+                    join: function(screen_id) {
+                        Controller.socket.emit("join screen", screen_id);
+                        Controller.screen.id = screen_id;
+                    },
+                    
+                    leave: function() {
+                        if (Controller.screen.id) {
+                            Controller.screen.id = 0;
+                        }
+                    }
+                },
+            
+                emit: {
+                    rate_max: 30,
+                    counter: 0,
+                    reset_rate: 500,
+                    
+                    resetCounter: function() {
+                        Controller.emit.counter = 0;
+                    },
+                    
+                    isThrottled: function () {
+                        if (Controller.emit.counter > Controller.emit.rate_max) {
+                            return true;
+                        }
+                        return false;
+                    }
+                },
+                
+                util: {
+                    debug: function (msg) {
+                        $("#debug").html(msg);
+                    }
+                },
+                
+                system: {
+                    emit_reset_id: 0,
+                    
+                    init: function() {
+                        Controller.system.emit_reset_id = window.setInterval('Controller.emit.resetCounter()', Controller.emit.reset_rate);
+                    },
+                    
+                    disconnected: function() {
+                        Controller.screen.leave();
+                    }
+                },
+                
+                actions: {
+                    tilt: function(o) {
+                        if (!Controller.screen.id || Controller.emit.isThrottled()) {
+                            return;
+                        }
+
+                        Controller.emit.counter += 1;
+                        Controller.socket.emit('action', {'accelerometer': o});
+
+                        Controller.util.debug("Acc: " + o[0] + " : " + o[1]);
+                    },
+
+                    button: function(o) {
+                        if (!Controller.screen.id || Controller.emit.isThrottled()) {
+                            return;
+                        }
+
+                        Controller.emit.counter += 1;
+                        Controller.socket.emit('action', {'button': o});
+
+                        Controller.util.debug("Button: " + o.action + " : " + o.state);
+                    },
+
+                },
+                
+                ui: {
+                    updateScreenList: function() {
+                        $("ul#screens").show();
+                        $("ul#screens").html("");
+
+                        for (var i in Controller.screens) {
+                            $("ul#screens").append($("<li>click to join: <a href='' class='joinScreen' id='" + Controller.screens[i] + "'>" + Controller.screens[i] + "</a></li>"));
+                        }
+                    },
+                    
+                    joinedScreen: function() {
+                        $("ul#screens").hide();
+                        Controller.util.debug("Joined screen " + Controller.screen.id);
+                    }
+                }
+            };
+                
+            Controller.system.init();
+                
+                
+            // --- network code ---
+                    
+            Controller.socket.on('updated screen list', function(updated_screens) {
+                if (updated_screens.length == 0 && Controller.screen.id) {
+                    Controller.screen.leave();
+                }
+                
+                Controller.screens = updated_screens;
+                Controller.util.debug("Total screens: " + Controller.screens.length);
+                
+                Controller.ui.updateScreenList();
+            });
+            
+            Controller.socket.on('connect', function() {
+                Controller.socket.emit('set controller_id', Controller.id);
+            });
+                
+            Controller.socket.on('disconnect', function() {
+                Controller.util.debug("Error connecting to the server.");
+                Controller.system.disconnected();
+            });
+            
+            
+            // --- sensors ---
+            /*
+                
+            if (window.DeviceOrientationEvent) {
+                window.addEventListener("deviceorientation", function () {
+                    Controller.actions.tilt([event.beta, event.gamma]);
+                }, true);
+            } else if (window.DeviceMotionEvent) {
+                window.addEventListener('devicemotion', function () {
+                    Controller.actions.tilt([event.acceleration.x * 2, event.acceleration.y * 2]);
+                }, true);
+            } else {
+                window.addEventListener("MozOrientation", function () {
+                    Controller.actions.tilt([orientation.x * 50, orientation.y * 50]);
+                }, true);
+            }
+            */
+
+            var gc;
+            var gceh;
+            var bs = 40; // BOX SIZE CONSTANT
+
+            var default_controllers = {
+                dpad: function(opts) {
+                    opts.x = opts.x || 0;
+                    opts.y = opts.y || 0;
+                    opts.box_size = opts.box_size || 40;
+                    opts.padding = opts.padding || 0;
+
+                    var buttons = [{
+                            x: opts.x + opts.box_size, 
+                            y: opts.y, 
+                            action: 'UP'
+                        }, {
+                            x: opts.x, 
+                            y: opts.y + opts.box_size, 
+                            action: 'LEFT'
+                        },  {
+                            x: opts.x + (opts.box_size * 2), 
+                            y: opts.y + opts.box_size, 
+                            action: 'RIGHT'
+                        }, {
+                            x: opts.x + opts.box_size, 
+                            y: opts.y + (opts.box_size * 2), 
+                            action: 'DOWN'
+                        }
+                    ]; 
+
+                    return buttons;
+                },
+
+                twoButtons: function(opts) {
+                    opts.x = opts.x || 0;
+                    opts.y = opts.y || 0;
+                    opts.box_size = opts.box_size || 40;
+                    opts.padding = opts.padding || 10;
+
+                    var buttons = [{
+                            x: opts.x + opts.box_size, 
+                            y: opts.y + opts.box_size, 
+                            action: 'BUTTON_A',
+                            fill: '#33FF00',
+                            fireOnce: true
+                        }, {
+                            x: opts.x + opts.padding + (opts.box_size * 2), 
+                            y: opts.y + opts.box_size, 
+                            action: 'BUTTON_B',
+                            fill: '#33FF00',
+                            fireOnce: true
+                        }
+                    ];
+                    return buttons; 
+                }
+            };
+            
+            function Box(opts) {
+                console.log('creating box', opts);
+                this.x = opts.x || 0;
+                this.y = opts.y || 0;
+                this.w = opts.w || bs;
+                this.h = opts.h || bs;
+                this.fill = opts.fill || '#FF6600';
+                this.type = opts.type || 'button';
+                this.action = opts.action || '';
+                this.fireOnce = opts.fireOnce || false;
+                this.state = opts.state || 'up';
+            };
+
+            function GameController() {
+                this.canvas = null;
+                this.ctx = null;
+                this.WIDTH = 0;
+                this.HEIGHT = 0;
+                this.INTERVAL = 20;  // how often, in milliseconds, we check to see if a redraw is needed
+                
+                this.isDrag = false;
+                this.mx = 0;
+                this.my = 0; // mouse coordinates
+                
+                // when set to true, the canvas will redraw everything
+                // invalidate() just sets this to false right now
+                // we want to call invalidate() whenever we make a change
+                this.canvasValid = false;
+                
+                // The node (if any) being selected.
+                // If in the future we want to select multiple objects, this will get turned into an array
+                this.mySel = null; 
+                
+                // The selection color and width. Right now we have a red selection with a small width
+                this.mySelColor = '#CC0000';
+                this.mySelWidth = 2;
+                
+                // we use a fake canvas to draw individual shapes for selection testing
+                this.ghostcanvas = null;
+                this.ctx = null; // fake canvas context
+                
+                // since we can drag from anywhere in a node
+                // instead of just its x/y corner, we need to save
+                // the offset of the mouse when we start dragging.
+                this.offsetx = 0;
+                this.offsety = 0;
+                
+                // Padding and border style widths for mouse offsets
+                this.stylePaddingLeft = 0;
+                this.stylePaddingTop = 0;
+                this.styleBorderLeft = 0;
+                this.styleBorderTop = 0; 
+
+                this.boxes = [];
+            };
+
+            function GCEventHandler () {
+                this.myUp = function(e) {
+                    console.log('gceh', 'myup');
+                    gc.myUp(e); 
+                };
+
+                this.myDown = function(e) {
+                    console.log('gceh', 'mydown');
+                    gc.myDown(e);
+                };
+
+                this.myMove = function(e) {
+                    console.log('gceh', 'mymove');
+                    gc.myMove(e);
+                }
+            };
+
+            GameController.prototype.addRect = function(opts) {
+                // opts = {x, y, w, h, fill}
+                console.log('gc', 'addRect', opts);
+                var rect = new Box(opts);
+                this.boxes.push(rect);
+                this.invalidate();
+            }
+
+            GameController.prototype.init = function() {
+                // initialize our canvas, add a ghost canvas, set draw loop
+                // then add everything we want to intially exist on the canvas
+                this.canvas = $('#canvas')[0]; 
+                this.HEIGHT = this.canvas.height;
+                this.WIDTH = this.canvas.width;
+                this.ctx = this.canvas.getContext('2d');
+                this.ghostcanvas = document.createElement('canvas');
+                this.ghostcanvas.height = this.HEIGHT;
+                this.ghostcanvas.width = this.WIDTH;
+                this.gctx = this.ghostcanvas.getContext('2d');
+                
+                //fixes a problem where double clicking causes text to get selected on the canvas
+                this.canvas.onselectstart = function () { return false; }
+                
+                // fixes mouse co-ordinate problems when there's a border or padding
+                // see getMouse for more detail
+                if (document.defaultView && document.defaultView.getComputedStyle) {
+                    this.stylePaddingLeft = parseInt(document.defaultView.getComputedStyle(this.canvas, null)['paddingLeft'], 10)      || 0;
+                    this.stylePaddingTop  = parseInt(document.defaultView.getComputedStyle(this.canvas, null)['paddingTop'], 10)       || 0;
+                    this.styleBorderLeft  = parseInt(document.defaultView.getComputedStyle(this.canvas, null)['borderLeftWidth'], 10)  || 0;
+                    this.styleBorderTop   = parseInt(document.defaultView.getComputedStyle(this.canvas, null)['borderTopWidth'], 10)   || 0;
+                }
+                
+                // add our events. Up and down are for dragging,
+                // double click is for making new boxes
+                this.canvas.onmousedown = gceh.myDown;
+                this.canvas.onmouseup = gceh.myUp;
+                
+                // add custom initialization here:
+                
+                // add an orange rectangle
+                var controls = default_controllers.dpad({
+                    x: 0,
+                    y: 0,
+                    box_size: bs
+                });
+
+                var buttons = default_controllers.twoButtons({
+                    x: 100,
+                    y: 0,
+                    box_size: bs
+                });
+
+                for (i = 0; i < controls.length; i++) {
+                    this.addRect(controls[i]);
+                }
+                for (i = 0; i < buttons.length; i++) {
+                    this.addRect(buttons[i]);
+                }
+
+                // make draw() fire every INTERVAL milliseconds.
+                setInterval(function(){ gc.draw(); }, gc.INTERVAL);
+            };
+
+            GameController.prototype.clear = function(c) {
+                c.clearRect(0, 0, this.WIDTH, this.HEIGHT);
+            };
+
+
+            GameController.prototype.draw = function() {
+                // While draw is called as often as the INTERVAL variable demands,
+                // It only ever does something if the canvas gets invalidated by our code
+                if (this.mySel !== null) {
+                    Controller.actions.button(this.mySel); 
+                    if (this.mySel.fireOnce)
+                        this.mySel = null;
+                }
+
+                if (this.canvasValid == false) {
+                    console.log('gc', 'draw');
+                    this.clear(this.ctx);
+                    this.ctx.canvas.width  = window.innerWidth * .9;
+                    this.ctx.canvas.height = window.innerHeight * .9;
+
+                    // Add stuff you want drawn in the background all the time here
+                
+                    // draw all boxes
+                    var l = this.boxes.length;
+                    for (var i = 0; i < l; i++) {
+                        this.drawshape(this.ctx, 
+                            this.boxes[i], 
+                            this.boxes[i].fill);
+                    }
+                
+                    // draw selection
+                    // right now this is just a stroke along the edge of the selected box
+                    if (this.mySel != null) {
+                        this.ctx.strokeStyle = this.mySelColor;
+                        this.ctx.lineWidth = this.mySelWidth;
+                        this.ctx.strokeRect(
+                            this.mySel.x,
+                            this.mySel.y,
+                            this.mySel.w,
+                            this.mySel.h
+                        );
+                    }
+                
+                    // Add stuff you want drawn on top all the time here
+                    this.canvasValid = true;
+                } else {
+                    //console.log('gc', 'draw');
+                }
+            };
+
+            GameController.prototype.drawshape = function(context, shape, fill) {
+                context.fillStyle = fill;
+                
+                // We can skip the drawing of elements that have moved off the screen:
+                if (shape.x > this.WIDTH || shape.y > this.HEIGHT) return; 
+                if (shape.x + shape.w < 0 || shape.y + shape.h < 0) return;
+                
+                context.fillRect(shape.x, shape.y, shape.w, shape.h);
+            };
+
+            GameController.prototype.myDown = function(e) {
+                // Happens when the mouse is clicked in the canvas
+                this.getMouse(e);
+                this.clear(this.gctx); // clear the ghost canvas from its last use
+
+                console.log('gc', 'myDown', 'checking for box');
+                
+                // run through all the boxes
+                for (var i = 0; i < this.boxes.length; i++) {
+                    // draw shape onto ghost context
+                    this.drawshape(this.gctx, this.boxes[i], 'black');
+                
+                    // get image data at the mouse x,y pixel
+                    var imageData = this.gctx.getImageData(this.mx, 
+                        this.my, 1, 1);
+                    var index = (this.mx + this.my * imageData.width) * 4;
+                
+                    // if the mouse pixel exists, select and break
+                    if (imageData.data[3] > 0) {
+                        this.mySel = this.boxes[i];
+
+                        if (this.mySel.type == 'button') {
+                            // got a button click!
+                            this.mySel.state = 'down';
+                            //Controller.actions.button(this.mySel); 
+                            console.log('gc', 'myDown', 'clicked a button!');
+                            return;
+                        } else {
+                            // we will default this to a "drag" then
+                            this.offsetx = this.mx - this.mySel.x;
+                            this.offsety = this.my - this.mySel.y;
+                            this.mySel.x = this.mx - this.offsetx;
+                            this.mySel.y = this.my - this.offsety;
+                            this.isDrag = true;
+                            this.canvas.onmousemove = gceh.myMove;
+                            this.invalidate();
+                            this.clear(this.gctx);
+                            console.log('gc', 'myDown', 'clicked a box!');
+                            return;
+                        }
+                    }
+
+                }
+
+                // havent returned means we have selected nothing
+                this.mySel = null;
+
+                // clear the ghost canvas for next time
+                this.clear(this.gctx);
+
+                // invalidate because we might need the selection border to disappear
+                this.invalidate();
+            };
+
+            GameController.prototype.myMove = function(e) {
+                // Happens when the mouse is moving inside the canvas
+                if (this.isDrag){
+                    this.getMouse(e);
+
+                    var boxLeft = this.mySel.x;
+                    var boxRight = this.mySel.x + this.mySel.w;
+                    var boxTop = this.mySel.y;
+                    var boxBot = this.mySel.y + this.mySel.h;
+                    
+                    if (this.mx > boxRight ||
+                        this.mx < boxLeft ||
+                        this.my < boxTop ||
+                        this.my > boxBot) {
+                        // end our drag
+                        this.mySel.x = this.mx - this.offsetx;
+                        this.mySel.y = this.my - this.offsety;   
+                
+                        // something is changing position so we better invalidate the canvas!
+                        this.isDrag = false;
+                        this.canvas.onmousemove = null;
+                        console.log('gc', 'myMove', 'no longer on box');
+                    }
+                    this.invalidate();
+                }
+            };
+                
+            GameController.prototype.myUp = function() {
+                this.isDrag = false;
+                this.canvas.onmousemove = null;
+                this.mySel = null;
+            };
+
+            GameController.prototype.getMouse = function (e) {
+                var element = this.canvas;
+                this.offsetX = 0;
+                this.offsetY = 0;
+
+                if (element.offsetParent) {
+                    do {
+                        this.offsetX += element.offsetLeft;
+                        this.offsetY += element.offsetTop;
+                    } while ((element = element.offsetParent));
+                }
+
+                // Add padding and border style widths to offset
+                this.offsetX += this.stylePaddingLeft;
+                this.offsetY += this.stylePaddingTop;
+
+                this.offsetX += this.styleBorderLeft;
+                this.offsetY += this.styleBorderTop;
+
+                this.mx = e.pageX - this.offsetX;
+                this.my = e.pageY - this.offsetY
+            };
+
+            GameController.prototype.invalidate = function() {
+                this.canvasValid = false;
+            };
+
+            // --- ui interactions ---
+            
+            $(function() {
+                $(".joinScreen").live('click', function() {
+                    Controller.screen.join($(this).attr("id"));
+                    Controller.ui.joinedScreen();
+
+                    gceh = new GCEventHandler();
+
+                    gc = new GameController();
+                    gc.init();
+                    
+                    return false;
+                });
+
+            });
+
+            
+        </script>
+    </body>
 </html>
+
