@@ -35,6 +35,7 @@ var GAME = GAME || {
         width: 0,
         height: 0
     },
+    placedBombs: [],
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
 
@@ -69,9 +70,9 @@ var GAME = GAME || {
     controller_action: function(player_id, action) {
         console.log('G', 'controller_action', player_id, action);
         if (action.hasOwnProperty('button')) {
-            var button_pressed = action.button.action;
-            console.log('G', 'controller_action', 'pressed', button_pressed);
-            GAME.players[player_id].e.trigger(button_pressed);
+            var b = action.button;
+            console.log('G', 'controller_action', b.action, b.state);
+            GAME.players[player_id].e.trigger(b.action, b);
         }
 
     },
@@ -97,7 +98,7 @@ var GAME = GAME || {
             e: Crafty
                 .e('2D, DOM, ' + colour + 'Sprite, Ape, IOControls, DropsBombs')
                 .attr(GAME.spawns[GAME.num_players])
-                .dropBombs()
+                .DropBombs(1)
                 .IOControls(1)
                 .Ape(),
             id: player_id,
@@ -109,8 +110,8 @@ var GAME = GAME || {
     },
 
     player_left: function(player_id) {
-        if (GAME.players.indexOf(player_id) != -1) {
-            GAME.players.splice(GAME.players.indexOf(player_id), 1);
+        if (GAME.players.hasOwnProperty(player_id)) {
+            delete GAME.players[player_id];
         }
         $("#game_status").html("Player left! " + player_id);
         GAME.num_players++;
@@ -245,7 +246,7 @@ var GAME = GAME || {
 
         Crafty.c('IOControls', {
             __move: {left: false, right: false, up: false, down: false},
-            _speed: 10,
+            _speed: 5,
 
             IOControls: function(speed) {
                 if (speed) this._speed = speed;
@@ -276,6 +277,7 @@ var GAME = GAME || {
         Crafty.c('DropsBombs', {
             DropBombs: function() {
                 this.bind('BUTTON_A', function() {
+
                     Crafty.e('2D, DOM, bomb, bomb1')
                     .attr({
                         x: this._x, 
@@ -296,17 +298,29 @@ var GAME = GAME || {
                 .animate('walk_up',     0, 2, 4)
                 .animate('walk_right',  0, 1, 4)
                 .bind('LEFT', function(e) {
-                    if (!this.isPlaying("walk_left"))
-                        this.stop().animate("walk_left", 15);
+                    if (e.state == 'DOWN')
+                        if (!this.isPlaying("walk_left"))
+                            this.stop().animate("walk_left", 10);
+                    else
+                        this.stop();
                 }).bind('RIGHT', function(e) {
-                    if (!this.isPlaying("walk_right"))
-                        this.stop().animate("walk_right", 15);
+                    if (e.state == 'DOWN')
+                        if (!this.isPlaying("walk_right"))
+                            this.stop().animate("walk_right", 10);
+                    else
+                        this.stop();
                 }).bind('UP', function(e) {
-                    if (!this.isPlaying("walk_up"))
-                        this.stop().animate("walk_up", 15);
+                    if (e.state == 'DOWN')
+                        if (!this.isPlaying("walk_up"))
+                            this.stop().animate("walk_up", 10);
+                    else
+                        this.stop();
                 }).bind('DOWN', function(e) {
-                    if (!this.isPlaying("walk_down"))
-                        this.stop().animate("walk_down", 15);
+                    if (e.state == 'DOWN')
+                        if (!this.isPlaying("walk_down"))
+                            this.stop().animate("walk_down", 10);
+                    else
+                        this.stop();
                 }).onHit('solid', function () {
                     // we dont like hitting solids :( 
                     return;
