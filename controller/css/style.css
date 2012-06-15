@@ -308,3 +308,13 @@ textarea[contenteditable] {-webkit-appearance: none;}
     position: relative;
 }
 
+#controller div {
+    cursor: pointer;
+}
+
+#controller div span {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+

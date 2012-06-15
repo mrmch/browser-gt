@@ -24,6 +24,10 @@ var MARGIN = 100,
     FLOOR = -250,
     TILE_SIZE = 32;
 
+var bh = function(bomb) {
+    return bomb.x + ',' + bomb.y; 
+};
+
 var GAME = GAME || {
     name: 'browser-bomber',
     map_width: 25,
@@ -31,11 +35,12 @@ var GAME = GAME || {
     tile_size: TILE_SIZE,
     max_players: 4,
     num_players: 0,
+    bomb_timer: 1000, // 30 ms
     screen: {
         width: 0,
         height: 0
     },
-    placedBombs: [],
+    placedBombs: {},
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
 
@@ -45,6 +50,10 @@ var GAME = GAME || {
         * GAME.init
         * Intiates the game state
         */
+
+        //Crafty.modules({ 'crafty-debug-bar': 'release' }, function () {
+        //    Crafty.debugBar.show();
+        //});
 
         GAME.window = window;
         GAME.screen.width = SCREEN_WIDTH;
@@ -69,12 +78,13 @@ var GAME = GAME || {
 
     controller_action: function(player_id, action) {
         console.log('G', 'controller_action', player_id, action);
+
         if (action.hasOwnProperty('button')) {
             var b = action.button;
+            b.player_id = player_id;
             console.log('G', 'controller_action', b.action, b.state);
             GAME.players[player_id].e.trigger(b.action, b);
         }
-
     },
 
     player_joined: function(player_id) {
@@ -96,10 +106,10 @@ var GAME = GAME || {
 
         GAME.players[player_id] = {
             e: Crafty
-                .e('2D, DOM, ' + colour + 'Sprite, Ape, IOControls, DropsBombs')
+                .e('2D, DOM, ' + colour + 'Sprite, player, Ape, IOControls, DropsBombs')
                 .attr(GAME.spawns[GAME.num_players])
                 .DropBombs(1)
-                .IOControls(1)
+                .IOControls()
                 .Ape(),
             id: player_id,
             score: 0,
@@ -111,10 +121,11 @@ var GAME = GAME || {
 
     player_left: function(player_id) {
         if (GAME.players.hasOwnProperty(player_id)) {
+            GAME.players[player_id].e.destroy();
             delete GAME.players[player_id];
         }
         $("#game_status").html("Player left! " + player_id);
-        GAME.num_players++;
+        GAME.num_players--;
     },
 
     loadingScreen: function() {
@@ -245,45 +256,99 @@ var GAME = GAME || {
         }
 
         Crafty.c('IOControls', {
-            __move: {left: false, right: false, up: false, down: false},
-            _speed: 5,
+            _move: {left: false, right: false, up: false, down: false},
+            _speed: 1.5,
 
-            IOControls: function(speed) {
-                if (speed) this._speed = speed;
-                var move = this.__move;
+            IOControls: function() {
+                //if (speed) this._speed = speed;
+                var move = this._move;
 
-                this.bind('LEFT', function(e) {
+                this.bind('EnterFrame', function() {
                     var from = {x: this.x, y: this.y};
-                    this.x -= this._speed; 
+
+                    if (move.right) this.x += this._speed; 
+                    else if (move.left) this.x -= this._speed; 
+                    else if (move.up) this.y -= this._speed;
+                    else if (move.down) this.y += this._speed; 
+                    else this.trigger('notMoving'); 
+
                     this.trigger('Moved', from);
+                }).bind('LEFT', function(e) {
+                    move.left = (e.state == 'down');
                 }).bind('RIGHT', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.x += this._speed;
-                    this.trigger('Moved', from);
+                    move.right = (e.state == 'down');
                 }).bind('UP', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.y -= this._speed;
-                    this.trigger('Moved', from);
+                    move.up = (e.state == 'down');
                 }).bind('DOWN', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.y += this._speed;
-                    this.trigger('Moved', from);
+                    move.down = (e.state =='down');
                 });
 
                 return this;
             }
         });
 
+        Crafty.c('Bomb', {
+            _step: 1,
+
+            Bomb: function() {
+                var bomb = this;
+                bomb.stepTimer();
+
+                return this;
+            },
+
+            stepTimer: function() {
+                var bomb = this;
+
+                this.timeout(function() {
+                    bomb.doStep();
+                }, GAME.bomb_timer);
+            },
+
+            doStep: function() {
+                this._step++;
+
+                if (this._step > 3) {
+                    // time to explode!
+                    GAME.placedBombs[bh(this)] = undefined;
+                    console.log('BOMB EXPLODING', this);
+                    this.destroy();
+                } else {
+                    console.log('updating bomb sprite', this);
+                    this.addComponent('bomb' + this._step);
+                    this.stepTimer();
+                }
+            },
+        });
+
         Crafty.c('DropsBombs', {
             DropBombs: function() {
-                this.bind('BUTTON_A', function() {
+                this.bind('BUTTON_A', function(e) {
+                    console.log('dropping a bomb', e, this);
 
-                    Crafty.e('2D, DOM, bomb, bomb1')
-                    .attr({
-                        x: this._x, 
-                        y: this._y, 
-                        z: this._z
-                    });
+                    var tile_x = Math.round(this._x/GAME.tile_size) * GAME.tile_size;
+                    var tile_y = Math.round(this._y/GAME.tile_size) * GAME.tile_size;
+
+                    var abomb = {
+                        x: tile_x, 
+                        y: tile_y
+                    };
+
+                    if (GAME.placedBombs[bh(abomb)] === undefined) {
+                        // there is no bomb here yet/right now
+
+                        abomb.player = e.player_id;
+
+                        abomb.e = Crafty.e('2D, DOM, Bomb, bomb, bomb1')
+                        .attr({
+                            x: tile_x, 
+                            y: tile_y, 
+                            z: this._z
+                        }).Bomb();
+
+                        GAME.placedBombs[bh(abomb)] = abomb;
+                    }
+
                 });
                 return this;
             }
@@ -297,32 +362,29 @@ var GAME = GAME || {
                 .animate('walk_left',   0, 3, 4)
                 .animate('walk_up',     0, 2, 4)
                 .animate('walk_right',  0, 1, 4)
-                .bind('LEFT', function(e) {
-                    if (e.state == 'DOWN')
-                        if (!this.isPlaying("walk_left"))
-                            this.stop().animate("walk_left", 10);
-                    else
-                        this.stop();
-                }).bind('RIGHT', function(e) {
-                    if (e.state == 'DOWN')
+                .bind('EnterFrame', function(e) {
+                    if (this._move.left) {
+                        if (!this.isPlaying("walk_left")) {
+                            console.log('left not playing, starting again'); 
+                            this.stop().animate("walk_left", 4, -1);
+                        }
+                    } else if (this._move.right) {
                         if (!this.isPlaying("walk_right"))
-                            this.stop().animate("walk_right", 10);
-                    else
-                        this.stop();
-                }).bind('UP', function(e) {
-                    if (e.state == 'DOWN')
+                            this.stop().animate("walk_right", 4, -1);
+                    } else if (this._move.up) {
                         if (!this.isPlaying("walk_up"))
-                            this.stop().animate("walk_up", 10);
-                    else
-                        this.stop();
-                }).bind('DOWN', function(e) {
-                    if (e.state == 'DOWN')
+                            this.stop().animate("walk_up", 4, -1);
+                    } else if (this._move.down) {
                         if (!this.isPlaying("walk_down"))
-                            this.stop().animate("walk_down", 10);
-                    else
-                        this.stop();
+                            this.stop().animate("walk_down", 4, -1);
+                    } 
+                }).bind('notMoving', function() {
+                    this._move.left = this._move.right = this._move.up = this._move.down = false;
+                    this.stop();
                 }).onHit('solid', function () {
                     // we dont like hitting solids :( 
+                    this.stop();
+                    this._move.left = this._move.right = this._move.up = this._move.down = false;
                     return;
                 }).bind('Moved', function (from) {
                     if (this.hit('solid')) {
@@ -330,11 +392,14 @@ var GAME = GAME || {
                             x: from.x, 
                             y: from.y
                         });
+                        this.stop();
+                        this._move.left = this._move.right = this._move.up = this._move.down = false;
                     }
                 }).onHit('fire', function() {
                     this.destroy();
                     // Subtract life and play scream sound :-)
                 });
+
                 return this;
             }
         });

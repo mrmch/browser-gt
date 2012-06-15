@@ -83,6 +83,8 @@
                         if (Controller.screen.id) {
                             Controller.screen.id = 0;
                         }
+
+                        $('#controller').empty();
                     }
                 },
             
@@ -209,6 +211,20 @@
 
             var gc;
             var bs = 60; // BOX SIZE CONSTANT
+            var use_events = {};
+            var event_types = {
+                mouse: {
+                    start: 'mousedown',
+                    stop: 'mouseup',
+                    leave: 'mouseleave',
+                    listen_string: 'mousedown mouseup'
+                }, touch: {
+                    start: 'touchstart',
+                    stop: 'touchend',
+                    leave: 'touchmove',
+                    listen_string: 'touchstart touchend'
+                }
+            };
 
             var default_controllers = {
                 dpad: function(opts) {
@@ -265,6 +281,7 @@
                             w: opts.w, 
                             h: opts.h, 
                             action: 'BUTTON_A',
+                            text: 'A',
                             fill: '#33FF00',
                             fireOnce: true,
                             bounds: ['top', 'right']
@@ -274,6 +291,7 @@
                             w: opts.w, 
                             h: opts.h, 
                             action: 'BUTTON_B',
+                            text: 'B',
                             fill: '#33FF00',
                             fireOnce: true,
                             bounds: ['top', 'right']
@@ -285,6 +303,7 @@
             
             function Control(opts) {
                 console.log('creating control', opts);
+
                 this.x = opts.x || 0;
                 this.y = opts.y || 0;
                 this.w = opts.w || bs;
@@ -293,14 +312,18 @@
                 this.type = opts.type || 'button';
                 this.action = opts.action || '';
                 this.fireOnce = opts.fireOnce || false;
+                this.text = opts.text || false;
                 this.state = opts.state || 'up';
                 this.bounds = opts.bounds || ['top', 'left'];
+                this.interval_timeout = 50;
             };
 
             Control.prototype.render = function(opts) {
                 var controlId = opts.controlId || null;
 
                 var el = document.createElement('div');
+                var text = document.createElement('span');
+
                 $(el)
                     .attr('id', this.action)
                     .data('controlId', parseInt(controlId)) 
@@ -312,38 +335,58 @@
                     })
                     .css(this.bounds[0], this.y)
                     .css(this.bounds[1], this.x);
-                this.el = el;
+
+                if (this.text) {
+                    $(text).text(this.text);
+                    $(text).css('font-size', this.w + 'px');
+                    $(el).append(text);
+                }
+
+                this.el = '#' + this.action;
                 return el;
             };
 
             Control.prototype.fireEvent = function(e) {
                 e.preventDefault();
 
-                if (this.fireOnce) {
-                    Controller.actions.button(this);
-                } else if (e.type == "mousedown") {
-                    $(this.el).bind('mouseleave', GCEventHandler.fireEvent);
+                if (e.type == use_events.start) {
+                    $(this.el).bind(use_events.leave, GCEventHandler.fireEvent);
                     this.fireMouseDown(); 
-                } else if (e.type == "mouseup") {
+                } else if (e.type == use_events.stop) {
                     this.fireMouseUp();
-                } else if (e.type == "mouseleave") {
+                } else if (e.type == use_events.leave) {
                     this.fireMouseUp();
                 }
             };
 
             Control.prototype.fireMouseDown = function() {
                 console.log('fireMouseDown', this);
-                this.state = 'down';
                 var me = this;
+                this.state = 'down';
+
                 clearInterval(this.interval);
-                this.interval = setInterval(function() {me.fireMouseDown();}, 500);
-                Controller.actions.button(this);
+
+                // fire the event!
+
+                if (!this.fireOnce) {
+                    this.interval = setInterval(function() {
+                        Controller.actions.button(me);
+                        me.fireMouseDown();
+                    }, this.interval_timeout);
+                } else {
+                    Controller.actions.button(this);
+                }
+
             };
 
             Control.prototype.fireMouseUp = function() {
                 console.log('fireMouseUp', this);
+
                 clearInterval(this.interval);
-                $(this.el).unbind('mouseleave');
+
+                $(this.el).unbind(use_events.leave);
+                this.state = 'up';
+                Controller.actions.button(this);
             };
 
             var GCEventHandler = {
@@ -372,7 +415,6 @@
                     y: 0
                 });
 
-
                 for (i = 0; i < dpad.length; i++)
                     this.controls.push(new Control(dpad[i]));
 
@@ -384,13 +426,27 @@
                     this.container.append(this.controls[i].render({controlId:i}));
                 }
 
-                var listen_events = "mousedown mouseup touchstart touchend"
-                this.container.on(listen_events, 'div', GCEventHandler.fireEvent);
+                this.container.on(use_events.listen_string, 'div', GCEventHandler.fireEvent);
             };
             
             // --- ui interactions ---
             
             $(function() {
+                $('body').one('mousemove', function(e){
+                    // we're going to use mouse events
+
+                    use_events = event_types.mouse;                
+
+                    console.log("We're going to use mouse events", use_events);
+                }).one('touchstart', function(e) {
+                    // fuck that shit, let's use touch events
+                    $('body').unbind('mousemove');
+
+                    use_events = event_types.touch;
+
+                    console.log("We're going to use touch events", use_events);
+                });
+
                 $(".joinScreen").live('click', function() {
                     Controller.screen.join($(this).attr("id"));
                     Controller.ui.joinedScreen();
