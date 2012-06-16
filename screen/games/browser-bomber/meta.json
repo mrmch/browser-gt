@@ -13,7 +13,7 @@
     ],
   
     "imports": [
-        "js/crafty-min.js",
+        "js/crafty.js",
         "js/components/crafty-debug-bar-release.js",
         "js/game.js"
     ]

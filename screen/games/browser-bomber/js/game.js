@@ -2,27 +2,21 @@
  * GAME JS
  */
 
-
-/*
-
-PAUSE_ANIMATION = false,
-
-simulateKeyPress = function(key, delay) {
-    // key must be in Crafty's keys array. No lower case letters!
-    var keyUp = function() {
-    Crafty.trigger("KeyUp", {key: Crafty.keys[key]});
-    }
-
-    Crafty.trigger('KeyDown', {key: Crafty.keys[key]});
-    window.setTimeout(keyUp, delay);
-};
-*/
+var $ = $ || null;
+var window = window || null;
+var Crafty = Crafty || null;
+var console = console || null;
 
 var MARGIN = 100,
-    SCREEN_WIDTH = window.innerWidth * .90,
-    SCREEN_HEIGHT = window.innerHeight * .90,
+    SCREEN_WIDTH = window.innerWidth * 0.90,
+    SCREEN_HEIGHT = window.innerHeight * 0.90,
     FLOOR = -250,
     TILE_SIZE = 32;
+
+var bh = function (bomb) {
+    'use strict';
+    return bomb.x + ',' + bomb.y;
+};
 
 var GAME = GAME || {
     name: 'browser-bomber',
@@ -31,19 +25,28 @@ var GAME = GAME || {
     tile_size: TILE_SIZE,
     max_players: 4,
     num_players: 0,
+    bomb_timer: 1000, // 30 ms
+    flame_timer: 150,
     screen: {
         width: 0,
         height: 0
     },
+    placedBombs: {},
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
 
 
-    init: function() {
+    init: function () {
         /**
         * GAME.init
         * Intiates the game state
         */
+
+        //Crafty.modules({ 'crafty-debug-bar': 'release' }, function () {
+        //    Crafty.debugBar.show();
+        //});
+
+        'use strict';
 
         GAME.window = window;
         GAME.screen.width = SCREEN_WIDTH;
@@ -58,26 +61,32 @@ var GAME = GAME || {
         GAME.sprite_base = '/screen/games/' + GAME.name + '/images/';
     },
 
-    start: function() {
+    start: function () {
         /**
          * GAME.start
          * starts the game
          */
+        'use strict';
         Crafty.scene('loading');
     },
 
-    controller_action: function(player_id, action) {
-        console.log('G', 'controller_action', player_id, action);
-        if (action.hasOwnProperty('button')) {
-            var button_pressed = action.button.action;
-            console.log('G', 'controller_action', 'pressed', button_pressed);
-            GAME.players[player_id].e.trigger(button_pressed);
-        }
+    controller_action: function (player_id, action) {
+        'use strict';
 
+        console.log('G', 'controller_action', player_id, action);
+
+        if (action.hasOwnProperty('button')) {
+            var b = action.button;
+            b.player_id = player_id;
+            console.log('G', 'controller_action', b.action, b.state);
+            GAME.players[player_id].e.trigger(b.action + player_id, b);
+        }
     },
 
-    player_joined: function(player_id) {
-        if (player_id in GAME.players) {
+    player_joined: function (player_id) {
+        'use strict';
+
+        if (GAME.players.hasOwnProperty(player_id)) {
             return;
         }
 
@@ -95,286 +104,480 @@ var GAME = GAME || {
 
         GAME.players[player_id] = {
             e: Crafty
-                .e('2D, DOM, ' + colour + 'Sprite, Ape, IOControls, DropsBombs')
+                .e('2D, DOM, ' + colour + 'Sprite, player, Player')
                 .attr(GAME.spawns[GAME.num_players])
-                .dropBombs()
-                .IOControls(1)
-                .Ape(),
+                .Player(player_id),
             id: player_id,
-            score: 0,
+            colour: colour,
+            score: 0
         };
         
-        GAME.num_players++;
+        GAME.num_players = GAME.num_players + 1;
         $("#game_status").html("Player joined! " + player_id);
     },
 
-    player_left: function(player_id) {
-        if (GAME.players.indexOf(player_id) != -1) {
-            GAME.players.splice(GAME.players.indexOf(player_id), 1);
+    player_left: function (player_id) {
+        'use strict';
+
+        if (GAME.players.hasOwnProperty(player_id)) {
+            GAME.players[player_id].e.destroy();
+            delete GAME.players[player_id];
         }
         $("#game_status").html("Player left! " + player_id);
-        GAME.num_players++;
+        GAME.num_players = GAME.num_players - 1;
     },
 
-    loadingScreen: function() {
+    loadingScreen: function () {
         /**
          * Loading screen, loads our sprites
          */
 
+        'use strict';
+
         //load takes an array of assets and a callback when complete
         Crafty.load([
-                GAME.sprite_base + 'white_player_32x40.gif',
-                GAME.sprite_base + 'tiles_items_20x20.gif'
-            ], function () {
-                //when everything is loaded, run the main scene
+            GAME.sprite_base + 'white_player_32x40.gif',
+            GAME.sprite_base + 'tiles_items_20x20.gif'
+        ], function () {
+            //when everything is loaded, run the main scene
 
-                Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'tiles_32x32.gif', {
-                    bomb1:      [0, 0],
-                    bomb2:      [1, 0],
-                    bomb3:      [2, 0],
-                    dead:       [3, 0],
-                    ground1:    [0, 1],
-                    ground2:    [1, 1],
-                    ground3:    [2, 1],
-                    ground4:    [3, 1],
-                    box1:       [0, 2],
-                    box2:       [1, 2],
-                    block1:     [0, 3],
-                    block2:     [1, 3],
-                });
+            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'tiles_32x32.gif', {
+                bomb1:      [0, 0],
+                bomb2:      [1, 0],
+                bomb3:      [2, 0],
+                dead:       [3, 0],
+                ground1:    [0, 1],
+                ground2:    [1, 1],
+                ground3:    [2, 1],
+                ground4:    [3, 1],
+                box1:       [0, 2],
+                box2:       [1, 2],
+                flame1:     [2, 2],
+                flame2:     [3, 2],
+                block1:     [0, 3],
+                block2:     [1, 3]
+            });
 
-                Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'white_player_32x32.gif', {
-                    WhiteSprite: [0, 0],
-                });
+            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'white_player_32x32.gif', {
+                WhiteSprite: [0, 0]
+            });
 
-                Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'red_player_32x32.gif', {
-                    RedSprite: [0, 0],
-                });
+            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'red_player_32x32.gif', {
+                RedSprite: [0, 0]
+            });
 
-                Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'blue_player_32x32.gif', {
-                    BlueSprite: [0, 0],
-                });
+            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'blue_player_32x32.gif', {
+                BlueSprite: [0, 0]
+            });
 
-                Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'green_player_32x32.gif', {
-                    GreenSprite: [0, 0],
-                });
+            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'green_player_32x32.gif', {
+                GreenSprite: [0, 0]
+            });
 
-                Crafty.scene("main"); 
+            Crafty.scene("main");
         });
 
         //black background with some loading text
         Crafty.background("#FFF");
         Crafty.e("2D, DOM, Text")
             .attr({
-                w: 100, 
-                h: 20, 
-                x: 150, 
-                y: 120 })
-            .text("Loading ...")
+                w: 100,
+                h: 20,
+                x: 150,
+                y: 120
+            }).text("Loading ...")
             .css({"text-align": "center"});
     },
 
-    generateWorld: function() {
+    generateWorld: function () {
         /**
          * Generates the game world
          */
-        var ground;
-        var box = 'box' + Crafty.math.randomInt(1,2);
-        var block = 'block' + Crafty.math.randomInt(1,2);
-        
+        'use strict';
 
-        for (var i = 0; i < GAME.map_width; i++) {
-            for (var j = 0; j < GAME.map_height; j++) {
-                if (i === 0 || i === GAME.map_width-1 || 
-                    j === 0 || j === GAME.map_height-1) {
-                    
+        var ground,
+            box = 'box' + Crafty.math.randomInt(1, 2),
+            block = 'block' + Crafty.math.randomInt(1, 2),
+            i = 0,
+            j = 0;
+
+        Crafty.c('Explodable', {
+            Explodable: function () {
+                this.requires('Collision, Grid')
+                    .onHit('Flame', function () {
+                        this.destroy();
+                    });
+
+                return this;
+            },
+
+            explode: function () {
+                this.destroy();
+            }
+        });
+
+
+        for (i = 0; i < GAME.map_width; i += 1) {
+            for (j = 0; j < GAME.map_height; j += 1) {
+                if (i === 0 || i === GAME.map_width - 1 ||
+                        j === 0 || j === GAME.map_height - 1) {
+                    //
                     // Draw surrounding blocks
                     Crafty.e("2D, DOM, solid, block1")
                         .attr({
-                            x: i * GAME.tile_size, 
-                            y: j * GAME.tile_size, 
+                            x: i * GAME.tile_size,
+                            y: j * GAME.tile_size,
                             z: 2
-                        }
-                    );
+                        });
                 } else if (i % 2 === 0 && j % 2 === 0) {
 
                     // Draw concrete blocks
                     Crafty.e("2D, DOM, solid, " + block)
                         .attr({
-                            x: i * GAME.tile_size, 
-                            y: j * GAME.tile_size, 
+                            x: i * GAME.tile_size,
+                            y: j * GAME.tile_size,
                             z: 2
-                        }
-                    );
+                        });
                 } else if (
-                        ((i === 1 || i === 2) && 
-                        (j === 1 || j === 2 || 
+                    ((i === 1 || i === 2) &&
+                        (j === 1 || j === 2 ||
                         j === GAME.map_height - 2 || j === GAME.map_height - 3)) ||
-                        ((i === GAME.map_width - 2 || i === GAME.map_width - 3) && 
-                        (j === 1 || j === 2 || j === GAME.map_height - 2 || j === GAME.map_height - 3))) {
+                        ((i === GAME.map_width - 2 || i === GAME.map_width - 3) &&
+                        (j === 1 || j === 2 || j === GAME.map_height - 2 || j === GAME.map_height - 3))
+                ) {
                     console.log('draw nothing, player start');
 
                 } else {
 
                     // draw explodable blocks
                     ground = Crafty.math.randomInt(1, 2);
-                    Crafty.e('2D, DOM, solid, explodable, ' + box)
+                    Crafty.e('2D, DOM, solid, Explodable, ' + box)
                         .attr({
                             x: i * GAME.tile_size,
                             y: j * GAME.tile_size,
                             z: 2
-                        })
-                        .bind('explode', function() {
-                            GAME.destroy();
-                        }
-                    );
-                    
+                        }).Explodable();
                 }
 
                 // draw ground
-                ground = Crafty.math.randomInt(1,4);
+                ground = Crafty.math.randomInt(1, 4);
                 Crafty.e("2D, DOM, ground" + ground)
                     .attr({
-                        x: i * GAME.tile_size, 
-                        y: j * GAME.tile_size, 
+                        x: i * GAME.tile_size,
+                        y: j * GAME.tile_size,
                         z: 0
-                    }
-                );
+                    });
             }
         }
 
-        Crafty.c('IOControls', {
-            __move: {left: false, right: false, up: false, down: false},
-            _speed: 10,
+        Crafty.c('Flame', {
+            step: 0,
 
-            IOControls: function(speed) {
-                if (speed) this._speed = speed;
-                var move = this.__move;
-
-                this.bind('LEFT', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.x -= this._speed; 
-                    this.trigger('Moved', from);
-                }).bind('RIGHT', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.x += this._speed;
-                    this.trigger('Moved', from);
-                }).bind('UP', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.y -= this._speed;
-                    this.trigger('Moved', from);
-                }).bind('DOWN', function(e) {
-                    var from = {x: this.x, y: this.y};
-                    this.y += this._speed;
-                    this.trigger('Moved', from);
-                });
+            Flame: function (opts) {
+                var flame = this;
+                flame.stepTimer();
 
                 return this;
-            }
-        });
+            },
 
-        Crafty.c('DropsBombs', {
-            DropBombs: function() {
-                this.bind('BUTTON_A', function() {
-                    Crafty.e('2D, DOM, bomb, bomb1')
-                    .attr({
-                        x: this._x, 
-                        y: this._y, 
-                        z: this._z
-                    });
-                });
-                return this;
-            }
-        });
+            stepTimer: function () {
+                var flame = this;
 
-        Crafty.c('Ape', {
-            Ape: function() {
-                // setup player animation
-                this.requires('SpriteAnimation, Collision, Grid')
-                .animate('walk_down',   0, 0, 4)
-                .animate('walk_left',   0, 3, 4)
-                .animate('walk_up',     0, 2, 4)
-                .animate('walk_right',  0, 1, 4)
-                .bind('LEFT', function(e) {
-                    if (!this.isPlaying("walk_left"))
-                        this.stop().animate("walk_left", 15);
-                }).bind('RIGHT', function(e) {
-                    if (!this.isPlaying("walk_right"))
-                        this.stop().animate("walk_right", 15);
-                }).bind('UP', function(e) {
-                    if (!this.isPlaying("walk_up"))
-                        this.stop().animate("walk_up", 15);
-                }).bind('DOWN', function(e) {
-                    if (!this.isPlaying("walk_down"))
-                        this.stop().animate("walk_down", 15);
-                }).onHit('solid', function () {
-                    // we dont like hitting solids :( 
-                    return;
-                }).bind('Moved', function (from) {
-                    if (this.hit('solid')) {
-                        this.attr({
-                            x: from.x, 
-                            y: from.y
-                        });
-                    }
-                }).onHit('fire', function() {
+                this.timeout(function () {
+                    flame.doStep();
+                }, GAME.flame_timer);
+            },
+
+            doStep: function () {
+                this.step += 1;
+
+                if (this.step > 3) {
+                    GAME.placedBombs[bh(this)] = undefined;
                     this.destroy();
-                    // Subtract life and play scream sound :-)
-                });
+                } else {
+                    this.addComponent('flame' + ((this.step % 2) + 1));
+                    this.stepTimer();
+                }
+            }
+        });
+
+        Crafty.c('Bomb', {
+            step: 1,
+            range: 1,
+            player_id: 0,
+
+            Bomb: function (o) {
+                this.range = o.range;
+                this.player_id = o.player_id;
+
+                var bomb = this;
+                bomb.stepTimer();
+
+                this.requires('Collision, Grid')
+                    .onHit('Flame', function () {
+                        this.explode();
+                    });
                 return this;
+            },
+
+            stepTimer: function () {
+                var bomb = this;
+
+                this.timeout(function () {
+                    bomb.doStep();
+                }, GAME.bomb_timer);
+            },
+
+            doStep: function () {
+                this.step += 1;
+
+                if (this.step > 3) {
+                    // time to explode!
+                    GAME.placedBombs[bh(this)] = undefined;
+                    console.log('BOMB EXPLODING', this);
+                    this.explode();
+                } else {
+                    console.log('updating bomb sprite', this);
+                    this.addComponent('bomb' + this.step);
+                    this.stepTimer();
+                }
+            },
+
+            explode: function () {
+                var i = -1 * this.range,
+                    f = null,
+                    new_x = 0,
+                    new_y = 0;
+
+                GAME.players[this.player_id].e.current_bombs -= 1;
+
+                while (i <= this.range) {
+                    new_x = this.x + (i * GAME.tile_size);
+                    new_y = this.y + (i * GAME.tile_size);
+
+                    console.log('new pos', new_x, new_y);
+
+                    if (new_x > 0 && new_x < GAME.map_width * GAME.tile_size) {
+                        Crafty.e('2D, DOM, Flame, flame2')
+                            .attr({
+                                x: new_x,
+                                y: this.y,
+                                z: this.z
+                            }).Flame();
+                    }
+
+                    if (i !== 0) {
+                        if (new_y > 0 && new_y < GAME.map_height * GAME.tile_size) {
+                            Crafty.e('2D, DOM, Flame, flame2')
+                                .attr({
+                                    x: this.x,
+                                    y: new_y,
+                                    z: this.z
+                                }).Flame();
+                        }
+                    }
+
+                    i += 1;
+                }
+
+                this.destroy();
+            }
+        });
+
+        Crafty.c('Player', {
+            speed: 2,
+            range: 1,
+            dead: false,
+            move: {left: false, right: false, up: false, down: false},
+            max_bombs: 1,
+            current_bombs: 0,
+
+
+            Player: function (player_id) {
+                // setup player animation
+                var move = this.move,
+                    player_id = player_id;
+
+                this.player_id = player_id;
+
+                this.requires('Collision, SpriteAnimation, Grid')
+                    .animate('walk_down',   0, 0, 4)
+                    .animate('walk_left',   0, 3, 4)
+                    .animate('walk_up',     0, 2, 4)
+                    .animate('walk_right',  0, 1, 4)
+                    .bind('EnterFrame', function (e) {
+                        var from = {x: this.x, y: this.y};
+
+                        if (!this.dead) {
+                            if (move.right) {
+                                this.x += this.speed;
+                            } else if (move.left) {
+                                this.x -= this.speed;
+                            } else if (move.up) {
+                                this.y -= this.speed;
+                            } else if (move.down) {
+                                this.y += this.speed;
+                            } else {
+                                this.trigger('notMoving' + player_id);
+                            }
+
+                            if (from.x !== this.x || from.y !== this.y) {
+                                this.trigger('Moved', from);
+                            }
+
+                            if (move.left) {
+                                if (!this.isPlaying("walk_left")) {
+                                    this.stop().animate("walk_left", 10, -1);
+                                }
+                            } else if (move.right) {
+                                if (!this.isPlaying("walk_right")) {
+                                    this.stop().animate("walk_right", 10, -1);
+                                }
+                            } else if (move.up) {
+                                if (!this.isPlaying("walk_up")) {
+                                    this.stop().animate("walk_up", 10, -1);
+                                }
+                            } else if (move.down) {
+                                if (!this.isPlaying("walk_down")) {
+                                    this.stop().animate("walk_down", 10, -1);
+                                }
+                            }
+                        }
+                    }).bind('notMoving' + this.player_id, function () {
+                        this.move.left = this.move.right = this.move.up = this.move.down = false;
+                        this.stop();
+                    }).onHit('solid', function () {
+                        // we dont like hitting solids :( 
+                        //console.log('hit a solid');
+                        //this.move.left = this.move.right = this.move.up = this.move.down = false;
+                        //this.stop();
+                    }).bind('Moved', function (from) {
+                        console.log('moved');
+                        if (this.hit('solid')) {
+                            this.attr({
+                                x: from.x,
+                                y: from.y
+                            });
+                            this.stop();
+                            this.move.left = this.move.right = this.move.up = this.move.down = false;
+                        }
+                    }).onHit('Flame', function () {
+                        this.stop();
+                        this.addComponent('dead');
+                        this.dead = true;
+                        console.log('player died!');
+                        // Subtract life and play scream sound :-)
+                    }).bind('LEFT' + player_id, function (e) {
+                        move.left = (e.state === 'down');
+                    }).bind('RIGHT' + player_id, function (e) {
+                        move.right = (e.state === 'down');
+                    }).bind('UP' + player_id, function (e) {
+                        move.up = (e.state === 'down');
+                    }).bind('DOWN' + player_id, function (e) {
+                        move.down = (e.state === 'down');
+                    }).bind('BUTTON_A' + player_id, function (e) {
+
+                        var tile_x = Math.round(this.x / GAME.tile_size) * GAME.tile_size,
+                            tile_y = Math.round(this.y / GAME.tile_size) * GAME.tile_size,
+
+                            abomb = {
+                                x: tile_x,
+                                y: tile_y
+                            };
+
+                        if (GAME.placedBombs[bh(abomb)] === undefined) {
+                            // there is no bomb here yet/right now
+
+                            if (this.current_bombs >= this.max_bombs) {
+                                return;
+                            }
+
+                            abomb.player = e.player_id;
+
+                            abomb.e = Crafty.e('2D, DOM, Bomb, bomb, bomb1')
+                                .attr({
+                                    x: tile_x,
+                                    y: tile_y,
+                                    z: this.z
+                                }).Bomb({
+                                    range: this.range,
+                                    player_id: this.player_id
+                                });
+
+                            GAME.placedBombs[bh(abomb)] = abomb;
+                            this.current_bombs += 1;
+                        }
+
+                    });
+
+
+                return this;
+            },
+
+            respawn: function () {
+                this.attr(GAME.spawns[0]);
+                var colour = GAME.players[this.player_id].colour;
+                this.addComponent(colour + 'Sprite');
+                this.dead = false;
             }
         });
 
     },
 
-    mainScreen: function() {
+    mainScreen: function () {
         /**
         * Main Game Screen
         * labels all the sprites and sets up the player
         */
 
+        'use strict';
+
         GAME.generateWorld();
     },
 
-    tick: function() {
+    tick: function () {
         /**
         * GAME.tick
         * Controls rendering each round
         */
 
-        GAME.window.webkitRequestAnimationFrame(GAME.tick);
+        'use strict';
 
-        if (PAUSE_ANIMATION) {
-            return;
-        }
+        //GAME.window.webkitRequestAnimationFrame(GAME.tick);
 
-        GAME.render();
+        //if (PAUSE_ANIMATION) {
+        //    return;
+        //}
+
+        //GAME.render();
     },
 
-    render: function() {
+    render: function () {
         /**
         * GAME.render
         * renders the game screen
         */
+        'use strict';
+
         return;
-    },
+    }
 };
 
-GAME.spawns = [{ 
-    x: 1 * TILE_SIZE,
-    y: 1 * TILE_SIZE,
-    z: 2,
-}, { 
-    x: 1 * TILE_SIZE,
+GAME.spawns = [{
+    x: TILE_SIZE,
+    y: TILE_SIZE,
+    z: 2
+}, {
+    x: TILE_SIZE,
     y: (GAME.map_height - 2) * TILE_SIZE,
-    z: 2,
-}, { 
+    z: 2
+}, {
     x: (GAME.map_width - 2) * TILE_SIZE,
-    y: 1 * TILE_SIZE,
-    z: 2,
-}, { 
+    y: TILE_SIZE,
+    z: 2
+}, {
     x: (GAME.map_width - 2) * TILE_SIZE,
     y: (GAME.map_height - 2) * TILE_SIZE,
-    z: 2,
+    z: 2
 }];
 

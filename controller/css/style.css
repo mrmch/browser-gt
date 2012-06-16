@@ -297,3 +297,25 @@ textarea[contenteditable] {-webkit-appearance: none;}
   p, h2, h3 { orphans: 3; widows: 3; }
   h2, h3 { page-break-after: avoid; }
 }
+
+
+/**
+ * CONTROLLER
+ */
+#controller {
+    width: 100%;
+    height: 400px;
+    position: relative;
+    margin: 5%;
+}
+
+#controller div {
+    cursor: pointer;
+}
+
+#controller div span {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
