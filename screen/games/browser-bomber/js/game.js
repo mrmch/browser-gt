@@ -40,19 +40,22 @@ var GAME = GAME || {
             'use strict';
             return (player.speed += 0.05);
         },
-        prop: 'speed'
+        prop: 'speed',
+        sprite: 'more_speed'
     }, {
         func: function (player) {
             'use strict';
             return (player.range += 1);
         },
-        prop: 'range'
+        prop: 'range',
+        sprite: 'more_range'
     }, {
         func: function (player) {
             'use strict';
             return (player.max_bombs += 1);
         },
-        prop: 'max_bombs'
+        prop: 'max_bombs',
+        sprite: 'more_bombs'
     }],
     placedBombs: {},
     players: {},
@@ -181,7 +184,10 @@ var GAME = GAME || {
                 flame1:     [2, 2],
                 flame2:     [3, 2],
                 block1:     [0, 3],
-                block2:     [1, 3]
+                block2:     [1, 3],
+                more_bombs: [0, 4],
+                more_speed: [1, 4],
+                more_range: [2, 4]
             });
 
             Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'white_player_32x32.gif', {
@@ -244,7 +250,7 @@ var GAME = GAME || {
                 rand = Crafty.math.randomInt(0, len + 1);
 
                 if (rand < len) {
-                    Crafty.e('2D, DOM, PowerUp, dead')
+                    Crafty.e('2D, DOM, PowerUp')
                         .attr({x: this.x, y: this.y, z: this.z})
                         .PowerUp(rand);
                 }
@@ -315,6 +321,7 @@ var GAME = GAME || {
             PowerUp: function (i) {
                 this.func = GAME.powerups[i].func;
                 this.prop = GAME.powerups[i].prop;
+                this.addComponent(GAME.powerups[i].sprite);
 
                 return this;
             }
