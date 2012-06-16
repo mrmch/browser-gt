@@ -20,21 +20,47 @@ var bh = function (bomb) {
 
 var GAME = GAME || {
     name: 'browser-bomber',
+
+    /**
+     * GAME SEUTP
+     */
     map_width: 25,
     map_height: 17,
     tile_size: TILE_SIZE,
     max_players: 4,
     num_players: 0,
     bomb_timer: 1000, // 30 ms
-    flame_timer: 150,
+    flame_timer: 100,
     screen: {
         width: 0,
         height: 0
     },
+    powerups: [{
+        func: function (player) {
+            'use strict';
+            return (player.speed += 0.05);
+        },
+        prop: 'speed'
+    }, {
+        func: function (player) {
+            'use strict';
+            return (player.range += 1);
+        },
+        prop: 'range'
+    }, {
+        func: function (player) {
+            'use strict';
+            return (player.max_bombs += 1);
+        },
+        prop: 'max_bombs'
+    }],
     placedBombs: {},
     players: {},
     player_colours: ["White", "Green", "Red", "Blue"],
 
+    /**
+     * END OF SETUP
+     */
 
     init: function () {
         /**
@@ -73,12 +99,12 @@ var GAME = GAME || {
     controller_action: function (player_id, action) {
         'use strict';
 
-        console.log('G', 'controller_action', player_id, action);
+        //console.log('G', 'controller_action', player_id, action);
 
         if (action.hasOwnProperty('button')) {
             var b = action.button;
             b.player_id = player_id;
-            console.log('G', 'controller_action', b.action, b.state);
+            //console.log('G', 'controller_action', b.action, b.state);
             GAME.players[player_id].e.trigger(b.action + player_id, b);
         }
     },
@@ -111,7 +137,7 @@ var GAME = GAME || {
             colour: colour,
             score: 0
         };
-        
+
         GAME.num_players = GAME.num_players + 1;
         $("#game_status").html("Player joined! " + player_id);
     },
@@ -205,13 +231,24 @@ var GAME = GAME || {
             Explodable: function () {
                 this.requires('Collision, Grid')
                     .onHit('Flame', function () {
-                        this.destroy();
+                        this.explode();
                     });
 
                 return this;
             },
 
             explode: function () {
+                var len = GAME.powerups.length,
+                    rand = 0;
+
+                rand = Crafty.math.randomInt(0, len + 1);
+
+                if (rand < len) {
+                    Crafty.e('2D, DOM, PowerUp, dead')
+                        .attr({x: this.x, y: this.y, z: this.z})
+                        .PowerUp(rand);
+                }
+                
                 this.destroy();
             }
         });
@@ -269,6 +306,19 @@ var GAME = GAME || {
                     });
             }
         }
+
+        Crafty.c('PowerUp', {
+            func: null,
+            prop: '',
+            powerup_id: 0,
+            
+            PowerUp: function (i) {
+                this.func = GAME.powerups[i].func;
+                this.prop = GAME.powerups[i].prop;
+
+                return this;
+            }
+        });
 
         Crafty.c('Flame', {
             step: 0,
@@ -334,10 +384,8 @@ var GAME = GAME || {
                 if (this.step > 3) {
                     // time to explode!
                     GAME.placedBombs[bh(this)] = undefined;
-                    console.log('BOMB EXPLODING', this);
                     this.explode();
                 } else {
-                    console.log('updating bomb sprite', this);
                     this.addComponent('bomb' + this.step);
                     this.stepTimer();
                 }
@@ -358,7 +406,7 @@ var GAME = GAME || {
                     console.log('new pos', new_x, new_y);
 
                     if (new_x > 0 && new_x < GAME.map_width * GAME.tile_size) {
-                        Crafty.e('2D, DOM, Flame, flame2')
+                        Crafty.e('2D, DOM, Flame, flame1')
                             .attr({
                                 x: new_x,
                                 y: this.y,
@@ -368,7 +416,7 @@ var GAME = GAME || {
 
                     if (i !== 0) {
                         if (new_y > 0 && new_y < GAME.map_height * GAME.tile_size) {
-                            Crafty.e('2D, DOM, Flame, flame2')
+                            Crafty.e('2D, DOM, Flame, flame1')
                                 .attr({
                                     x: this.x,
                                     y: new_y,
@@ -395,8 +443,7 @@ var GAME = GAME || {
 
             Player: function (player_id) {
                 // setup player animation
-                var move = this.move,
-                    player_id = player_id;
+                var move = this.move;
 
                 this.player_id = player_id;
 
@@ -451,8 +498,16 @@ var GAME = GAME || {
                         //console.log('hit a solid');
                         //this.move.left = this.move.right = this.move.up = this.move.down = false;
                         //this.stop();
+                    }).onHit('PowerUp', function () {
+                        console.log('hit a powerup', this);
+                        var hit = this.hit('PowerUp'),
+                            powerup;
+                        if (hit) {
+                            powerup = hit[0].obj;
+                            powerup.destroy();
+                            this[powerup.prop] = powerup.func(this);
+                        }
                     }).bind('Moved', function (from) {
-                        console.log('moved');
                         if (this.hit('solid')) {
                             this.attr({
                                 x: from.x,
@@ -580,4 +635,5 @@ GAME.spawns = [{
     y: (GAME.map_height - 2) * TILE_SIZE,
     z: 2
 }];
+
 
