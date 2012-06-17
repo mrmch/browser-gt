@@ -502,9 +502,9 @@ var GAME = GAME || {
                         this.stop();
                     }).onHit('solid', function () {
                         // we dont like hitting solids :( 
-                        //console.log('hit a solid');
-                        //this.move.left = this.move.right = this.move.up = this.move.down = false;
-                        //this.stop();
+                        console.log('hit a solid');
+                        this.move.left = this.move.right = this.move.up = this.move.down = false;
+                        this.stop();
                     }).onHit('PowerUp', function () {
                         console.log('hit a powerup', this);
                         var hit = this.hit('PowerUp'),
@@ -516,6 +516,7 @@ var GAME = GAME || {
                         }
                     }).bind('Moved', function (from) {
                         if (this.hit('solid')) {
+                            console.log('hit a solid (moved)');
                             this.attr({
                                 x: from.x,
                                 y: from.y
