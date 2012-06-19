@@ -27,6 +27,7 @@ var GAME = GAME || {
     map_width: 25,
     map_height: 17,
     tile_size: TILE_SIZE,
+    player_sprite_size: 28,
     max_players: 4,
     num_players: 0,
     bomb_timer: 1000, // 30 ms
@@ -194,19 +195,23 @@ var GAME = GAME || {
             });
             */
 
-            Crafty.sprite(28, GAME.sprite_base + 'raposaman.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'white_player_28x28.gif', {
                 WhiteSprite: [0, 0]
             });
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'red_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'red_player_28x28.gif', {
                 RedSprite: [0, 0]
             });
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'blue_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'blue_player_28x28.gif', {
                 BlueSprite: [0, 0]
             });
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'green_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'green_player_28x28.gif', {
                 GreenSprite: [0, 0]
             });
 
@@ -274,8 +279,11 @@ var GAME = GAME || {
 
         Crafty.c('Flame', {
             step: 0,
+            player_id: 0,
 
             Flame: function (opts) {
+                this.player_id = opts.player_id || 0;
+
                 var flame = this;
                 flame.stepTimer();
 
@@ -363,7 +371,7 @@ var GAME = GAME || {
                                 x: new_x,
                                 y: this.y,
                                 z: this.z
-                            }).Flame();
+                            }).Flame({player_id: this.player_id});
                     }
 
                     if (i !== 0) {
@@ -373,7 +381,7 @@ var GAME = GAME || {
                                     x: this.x,
                                     y: new_y,
                                     z: this.z
-                                }).Flame();
+                                }).Flame({player_id: this.player_id});
                         }
                     }
 
@@ -400,10 +408,10 @@ var GAME = GAME || {
                 this.player_id = player_id;
 
                 this.requires('Collision, SpriteAnimation, Grid')
-                    .animate('walk_down',   0, 0, 4)
-                    .animate('walk_left',   0, 3, 4)
-                    .animate('walk_up',     0, 2, 4)
-                    .animate('walk_right',  0, 1, 4)
+                    .animate('walk_down',   0, 0, 7)
+                    .animate('walk_left',   0, 2, 7)
+                    .animate('walk_up',     0, 3, 7)
+                    .animate('walk_right',  0, 1, 7)
                     .bind('EnterFrame', function (e) {
                         var from = {x: this.x, y: this.y};
 
@@ -447,7 +455,7 @@ var GAME = GAME || {
                         this.stop();
                     }).onHit('solid', function () {
                         // we dont like hitting solids :( 
-                        console.log('hit a solid');
+                        //console.log('hit a solid');
                         this.move.left = this.move.right = this.move.up = this.move.down = false;
                         this.stop();
                     }).onHit('PowerUp', function () {
@@ -475,6 +483,19 @@ var GAME = GAME || {
                         this.stop();
                         this.addComponent('dead');
                         this.dead = true;
+
+                        var checkHit = this.hit('Flame'),
+                            flameHit;
+                        if (checkHit) {
+                            flameHit = hit[0].obj;
+
+                            if (flameHit.player_id == this.player_id) {
+                                // suicide!
+                                GAME.players[this.player_id].score -= 1;
+                            } else {
+                                GAME.players[flameHit.player_id].score += 1;
+                            }
+                        }
 
                         console.log('player died!');
                     }).bind('LEFT' + player_id, function (e) {
@@ -615,14 +636,13 @@ var GAME = GAME || {
          * Launch a new game and update player stats
          */
         var i = 0,
-            key,
-            player;
+            key;
 
         for (key in GAME.players) {
             if (GAME.players.hasOwnProperty(key)) {
 
-                player = GAME.players[key];
-                player.respawn(GAME.spawns[i]);
+                GAME.players[key].e.respawn(GAME.spawns[i]);
+                GAME.players[key].score = 0;
 
                 i += 1;
             }
