@@ -60,13 +60,14 @@ var controller_io = io.of('/controllers').on('connection', function(socket) {
         });
     });
     
-    socket.on('join screen', function(screen_id) {
+    socket.on('join screen', function(screen_id, success) {
         socket.set('on_screen', screen_id, function() {
             socket.get('controller_id', function(err, controller_id) {
                 screen_io.emit('controller joined ' + screen_id, controller_id);
             });
         });
         socket.emit('set meta', screen_meta[screen_id]);
+        success(true);
     });
     
     socket.on('disconnect', function() {

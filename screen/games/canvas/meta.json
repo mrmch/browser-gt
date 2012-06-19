@@ -4,7 +4,7 @@
     "author":   "Grigory Kruglov",
     "description": "Platform test",
     
-    "actions": [],
+    "actions": ["dpad"],
     "sensors": ["accelerometer"],
     
     "imports": [

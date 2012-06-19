@@ -1,9 +1,9 @@
 var CONTROLLER = (function (controller, $) {
     var dom = {}, // dict of $ objects: debug, controller, screens
         id = Math.round(Math.random() * 1000000000),
-        emit_reset_id = 0,
-        meta = {};
+        emit_reset_id = 0;
     
+    controller.meta = {};
     controller.id = id;
     controller.screens = [];
     
@@ -20,8 +20,10 @@ var CONTROLLER = (function (controller, $) {
             return false;
         };
         
-        server.join = function(server_id) {
-            controller.socket.emit("join screen", server_id);
+        server.join = function(server_id, callback) {
+            controller.socket.emit("join screen", server_id, function(success) {
+                success && callback && callback();
+            });
             server.id = server_id;
         };
 
@@ -35,7 +37,7 @@ var CONTROLLER = (function (controller, $) {
         };
         
         server.setMeta = function(game_meta) {
-            meta = game_meta;
+            controller.meta = game_meta;
             
             controller.sensors.processSensors();
         }
@@ -91,8 +93,16 @@ var CONTROLLER = (function (controller, $) {
     controller.sensors = (function() {
         var sensors = {};
         
+        sensors.toggleSensor = function(sensor_name) {
+            if (controller.meta.sensors.indexOf(sensor_name) != -1) {
+                controller.meta.sensors.splice(controller.meta.sensors.indexOf(sensor_name), 1);
+            } else {
+                controller.meta.sensors.push(sensor_name);
+            }
+        };
+                
         sensors.processSensors = function() {
-            if (meta.sensors.indexOf("accelerometer") != -1) {
+            if (controller.meta.sensors.indexOf("accelerometer") != -1) {
                 console.log('enable accelerometer tracking');
                 controller.sensors.enableAccelerometer();
             }
@@ -101,16 +111,22 @@ var CONTROLLER = (function (controller, $) {
         sensors.enableAccelerometer = function() {
             if (window.DeviceOrientationEvent) {
                 window.addEventListener("deviceorientation", function () {
-                    controller.actions.send('accelerometer', [event.beta, event.gamma]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [event.beta, event.gamma]);
+                    }
                 }, true);
             
             } else if (window.DeviceMotionEvent) {
                 window.addEventListener('devicemotion', function () {
-                    controller.actions.send('accelerometer', [event.acceleration.x * 2, event.acceleration.y * 2]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [event.acceleration.x * 2, event.acceleration.y * 2]);
+                    }
                 }, true);
             } else {
                 window.addEventListener("MozOrientation", function () {
-                    controller.actions.send('accelerometer', [orientation.x * 50, orientation.y * 50]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [orientation.x * 50, orientation.y * 50]);
+                    }
                 }, true);
             }
         };

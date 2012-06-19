@@ -1,5 +1,5 @@
 var UI = function () {
-    var ui = {}, container;
+    var ui = {}, container, toggles;
     
     ui.controls = [];
     ui.box_size = 60;
@@ -34,6 +34,9 @@ var UI = function () {
         container = opts.container || '#controller';
         container = $(container);
         
+        toggles = opts.toggles || '#toggles';
+        toggles = $(toggles);
+        
         // figure out which events are going to be used
         $('body').one('mousemove', function(e){
             ui.use_events = ui.event_types.mouse;
@@ -46,18 +49,27 @@ var UI = function () {
             container.on(ui.use_events.listen_string, 'div', ui.fireEvent);
             console.log("We're going to use touch events", ui.use_events);
         });
-
-        // render UI
-        for (i = 0; i < dpad.length; i++) {
-            ui.controls.push(new COMPONENT(dpad[i], ui));
+        
+        if (CONTROLLER.meta.actions.indexOf("dpad") != -1) {
+            // render UI
+            for (i = 0; i < dpad.length; i++) {
+                ui.controls.push(new COMPONENT(dpad[i], ui));
+            }
         }
-
-        for (i = 0; i < abpad.length; i++) {
-            ui.controls.push(new COMPONENT(abpad[i], ui));
+        
+        if (CONTROLLER.meta.actions.indexOf("abpad") != -1) {
+            for (i = 0; i < abpad.length; i++) {
+                ui.controls.push(new COMPONENT(abpad[i], ui));
+            }
         }
         
         for (i = 0; i < ui.controls.length; i++) {
             container.append(ui.controls[i].render({controlId:i}));
+        }
+        
+        if (CONTROLLER.meta.sensors.indexOf("accelerometer") != -1) {
+            toggles.append($("<input type='checkbox' id='toggle_accelerometer' name='toggle_accelerometer'/>"));
+            toggles.append($("<label for='toggle_accelerometer'>Disable accelerometer</label>"))
         }
     };
     

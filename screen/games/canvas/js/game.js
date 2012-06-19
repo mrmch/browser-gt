@@ -132,7 +132,26 @@ var GAME = {
                 direction.x -= delta;
             }
             
-            movePlayer(player_id, direction);   
+            movePlayer(player_id, direction);
+            
+        } else if (action.type == "button") {
+            if (action.data.action == "UP") {
+                direction.y -= delta;
+            }
+            
+            if (action.data.action == "DOWN") {
+                direction.y += delta;
+            }
+            
+            if (action.data.action == "RIGHT") {
+                direction.x += delta;
+            }
+            
+            if (action.data.action == "LEFT") {
+                direction.x -= delta;
+            }
+            
+            movePlayer(player_id, direction);
         }
     },
     
