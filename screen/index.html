@@ -82,6 +82,13 @@
 
                 GAME.controller_action(o[0], o[1]);
             });
+            
+            socket.on('msg ' + screen_id, function(o) {
+                // controller sent a message
+                // o[0]: controller_id
+                // o[1]: message
+                GAME.controller_message(o[0], o[1]);
+            });
 
             socket.on('disconnect', function() {
                 // connection error handling

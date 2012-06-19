@@ -67,6 +67,8 @@ var UI = function () {
             container.append(ui.controls[i].render({controlId:i}));
         }
         
+        toggles.append($("<input type='button' id='new_game' value='New Game'/>"));
+        
         if (CONTROLLER.meta.sensors.indexOf("accelerometer") != -1) {
             toggles.append($("<input type='checkbox' id='toggle_accelerometer' name='toggle_accelerometer'/>"));
             toggles.append($("<label for='toggle_accelerometer'>Disable accelerometer</label>"))

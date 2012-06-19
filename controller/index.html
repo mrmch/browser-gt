@@ -87,6 +87,10 @@
             $("#toggle_accelerometer").live('change', function() {
               CONTROLLER.sensors.toggleSensor("accelerometer");
             });
+            
+            $("#new_game").live('click', function() {
+              CONTROLLER.server.message('new game');
+            })
           });
         </script>
     </body>
