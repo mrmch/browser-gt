@@ -27,6 +27,7 @@ var GAME = GAME || {
     map_width: 25,
     map_height: 17,
     tile_size: TILE_SIZE,
+    player_sprite_size: 28,
     max_players: 4,
     num_players: 0,
     bomb_timer: 1000, // 30 ms
@@ -71,11 +72,11 @@ var GAME = GAME || {
         * Intiates the game state
         */
 
+        'use strict';
+
         //Crafty.modules({ 'crafty-debug-bar': 'release' }, function () {
         //    Crafty.debugBar.show();
         //});
-
-        'use strict';
 
         GAME.window = window;
         GAME.screen.width = SCREEN_WIDTH;
@@ -102,12 +103,10 @@ var GAME = GAME || {
     controller_action: function (player_id, action) {
         'use strict';
 
-        //console.log('G', 'controller_action', player_id, action);
 
         if (action.hasOwnProperty('button')) {
             var b = action.button;
             b.player_id = player_id;
-            //console.log('G', 'controller_action', b.action, b.state);
             GAME.players[player_id].e.trigger(b.action + player_id, b);
         }
     },
@@ -190,21 +189,33 @@ var GAME = GAME || {
                 more_range: [2, 4]
             });
 
+            /*
             Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'white_player_32x32.gif', {
                 WhiteSprite: [0, 0]
             });
+            */
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'red_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'white_player_28x28.gif', {
+                WhiteSprite: [0, 0]
+            });
+
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'red_player_28x28.gif', {
                 RedSprite: [0, 0]
             });
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'blue_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'blue_player_28x28.gif', {
                 BlueSprite: [0, 0]
             });
 
-            Crafty.sprite(GAME.tile_size, GAME.sprite_base + 'green_player_32x32.gif', {
+            Crafty.sprite(GAME.player_sprite_size, 
+                GAME.sprite_base + 'green_player_28x28.gif', {
                 GreenSprite: [0, 0]
             });
+
+            GAME.loadComponents();
 
             Crafty.scene("main");
         });
@@ -221,17 +232,10 @@ var GAME = GAME || {
             .css({"text-align": "center"});
     },
 
-    generateWorld: function () {
+    loadComponents: function() {
         /**
-         * Generates the game world
+         * Load game components
          */
-        'use strict';
-
-        var ground,
-            box = 'box' + Crafty.math.randomInt(1, 2),
-            block = 'block' + Crafty.math.randomInt(1, 2),
-            i = 0,
-            j = 0;
 
         Crafty.c('Explodable', {
             Explodable: function () {
@@ -259,60 +263,6 @@ var GAME = GAME || {
             }
         });
 
-
-        for (i = 0; i < GAME.map_width; i += 1) {
-            for (j = 0; j < GAME.map_height; j += 1) {
-                if (i === 0 || i === GAME.map_width - 1 ||
-                        j === 0 || j === GAME.map_height - 1) {
-                    //
-                    // Draw surrounding blocks
-                    Crafty.e("2D, DOM, solid, block1")
-                        .attr({
-                            x: i * GAME.tile_size,
-                            y: j * GAME.tile_size,
-                            z: 2
-                        });
-                } else if (i % 2 === 0 && j % 2 === 0) {
-
-                    // Draw concrete blocks
-                    Crafty.e("2D, DOM, solid, " + block)
-                        .attr({
-                            x: i * GAME.tile_size,
-                            y: j * GAME.tile_size,
-                            z: 2
-                        });
-                } else if (
-                    ((i === 1 || i === 2) &&
-                        (j === 1 || j === 2 ||
-                        j === GAME.map_height - 2 || j === GAME.map_height - 3)) ||
-                        ((i === GAME.map_width - 2 || i === GAME.map_width - 3) &&
-                        (j === 1 || j === 2 || j === GAME.map_height - 2 || j === GAME.map_height - 3))
-                ) {
-                    console.log('draw nothing, player start');
-
-                } else {
-
-                    // draw explodable blocks
-                    ground = Crafty.math.randomInt(1, 2);
-                    Crafty.e('2D, DOM, solid, Explodable, ' + box)
-                        .attr({
-                            x: i * GAME.tile_size,
-                            y: j * GAME.tile_size,
-                            z: 2
-                        }).Explodable();
-                }
-
-                // draw ground
-                ground = Crafty.math.randomInt(1, 4);
-                Crafty.e("2D, DOM, ground" + ground)
-                    .attr({
-                        x: i * GAME.tile_size,
-                        y: j * GAME.tile_size,
-                        z: 0
-                    });
-            }
-        }
-
         Crafty.c('PowerUp', {
             func: null,
             prop: '',
@@ -329,8 +279,11 @@ var GAME = GAME || {
 
         Crafty.c('Flame', {
             step: 0,
+            player_id: 0,
 
             Flame: function (opts) {
+                this.player_id = opts.player_id || 0;
+
                 var flame = this;
                 flame.stepTimer();
 
@@ -418,7 +371,7 @@ var GAME = GAME || {
                                 x: new_x,
                                 y: this.y,
                                 z: this.z
-                            }).Flame();
+                            }).Flame({player_id: this.player_id});
                     }
 
                     if (i !== 0) {
@@ -428,7 +381,7 @@ var GAME = GAME || {
                                     x: this.x,
                                     y: new_y,
                                     z: this.z
-                                }).Flame();
+                                }).Flame({player_id: this.player_id});
                         }
                     }
 
@@ -455,10 +408,10 @@ var GAME = GAME || {
                 this.player_id = player_id;
 
                 this.requires('Collision, SpriteAnimation, Grid')
-                    .animate('walk_down',   0, 0, 4)
-                    .animate('walk_left',   0, 3, 4)
-                    .animate('walk_up',     0, 2, 4)
-                    .animate('walk_right',  0, 1, 4)
+                    .animate('walk_down',   0, 0, 7)
+                    .animate('walk_left',   0, 2, 7)
+                    .animate('walk_up',     0, 3, 7)
+                    .animate('walk_right',  0, 1, 7)
                     .bind('EnterFrame', function (e) {
                         var from = {x: this.x, y: this.y};
 
@@ -502,7 +455,7 @@ var GAME = GAME || {
                         this.stop();
                     }).onHit('solid', function () {
                         // we dont like hitting solids :( 
-                        console.log('hit a solid');
+                        //console.log('hit a solid');
                         this.move.left = this.move.right = this.move.up = this.move.down = false;
                         this.stop();
                     }).onHit('PowerUp', function () {
@@ -517,10 +470,12 @@ var GAME = GAME || {
                     }).bind('Moved', function (from) {
                         if (this.hit('solid')) {
                             console.log('hit a solid (moved)');
+
                             this.attr({
                                 x: from.x,
                                 y: from.y
                             });
+
                             this.stop();
                             this.move.left = this.move.right = this.move.up = this.move.down = false;
                         }
@@ -528,8 +483,21 @@ var GAME = GAME || {
                         this.stop();
                         this.addComponent('dead');
                         this.dead = true;
+
+                        var checkHit = this.hit('Flame'),
+                            flameHit;
+                        if (checkHit) {
+                            flameHit = hit[0].obj;
+
+                            if (flameHit.player_id == this.player_id) {
+                                // suicide!
+                                GAME.players[this.player_id].score -= 1;
+                            } else {
+                                GAME.players[flameHit.player_id].score += 1;
+                            }
+                        }
+
                         console.log('player died!');
-                        // Subtract life and play scream sound :-)
                     }).bind('LEFT' + player_id, function (e) {
                         move.left = (e.state === 'down');
                     }).bind('RIGHT' + player_id, function (e) {
@@ -539,7 +507,6 @@ var GAME = GAME || {
                     }).bind('DOWN' + player_id, function (e) {
                         move.down = (e.state === 'down');
                     }).bind('BUTTON_A' + player_id, function (e) {
-
                         var tile_x = Math.round(this.x / GAME.tile_size) * GAME.tile_size,
                             tile_y = Math.round(this.y / GAME.tile_size) * GAME.tile_size,
 
@@ -570,21 +537,87 @@ var GAME = GAME || {
                             GAME.placedBombs[bh(abomb)] = abomb;
                             this.current_bombs += 1;
                         }
-
                     });
 
 
                 return this;
             },
 
-            respawn: function () {
-                this.attr(GAME.spawns[0]);
+            respawn: function (spawn) {
                 var colour = GAME.players[this.player_id].colour;
+
+                this.attr(spawn);
                 this.addComponent(colour + 'Sprite');
                 this.dead = false;
             }
         });
 
+    },
+
+    generateWorld: function () {
+        /**
+         * Generates the game world
+         */
+        'use strict';
+
+        var ground,
+            box = 'box' + Crafty.math.randomInt(1, 2),
+            block = 'block' + Crafty.math.randomInt(1, 2),
+            i = 0,
+            j = 0;
+
+        for (i = 0; i < GAME.map_width; i += 1) {
+            for (j = 0; j < GAME.map_height; j += 1) {
+                if (i === 0 || i === GAME.map_width - 1 ||
+                        j === 0 || j === GAME.map_height - 1) {
+                    //
+                    // Draw surrounding blocks
+                    Crafty.e("2D, DOM, solid, block1")
+                        .attr({
+                            x: i * GAME.tile_size,
+                            y: j * GAME.tile_size,
+                            z: 2
+                        });
+                } else if (i % 2 === 0 && j % 2 === 0) {
+
+                    // Draw concrete blocks
+                    Crafty.e("2D, DOM, solid, " + block)
+                        .attr({
+                            x: i * GAME.tile_size,
+                            y: j * GAME.tile_size,
+                            z: 2
+                        });
+                } else if (
+                    ((i === 1 || i === 2) &&
+                        (j === 1 || j === 2 ||
+                        j === GAME.map_height - 2 || j === GAME.map_height - 3)) ||
+                        ((i === GAME.map_width - 2 || i === GAME.map_width - 3) &&
+                        (j === 1 || j === 2 || j === GAME.map_height - 2 || j === GAME.map_height - 3))
+                ) {
+                    console.log('draw nothing, player start');
+
+                } else {
+
+                    // draw explodable blocks
+                    ground = Crafty.math.randomInt(1, 2);
+                    Crafty.e('2D, DOM, solid, Explodable, ' + box)
+                        .attr({
+                            x: i * GAME.tile_size,
+                            y: j * GAME.tile_size,
+                            z: 2
+                        }).Explodable();
+                }
+
+                // draw ground
+                ground = Crafty.math.randomInt(1, 4);
+                Crafty.e("2D, DOM, ground" + ground)
+                    .attr({
+                        x: i * GAME.tile_size,
+                        y: j * GAME.tile_size,
+                        z: 0
+                    });
+            }
+        }
     },
 
     mainScreen: function () {
@@ -596,6 +629,24 @@ var GAME = GAME || {
         'use strict';
 
         GAME.generateWorld();
+    },
+
+    newGame: function () {
+        /**
+         * Launch a new game and update player stats
+         */
+        var i = 0,
+            key;
+
+        for (key in GAME.players) {
+            if (GAME.players.hasOwnProperty(key)) {
+
+                GAME.players[key].e.respawn(GAME.spawns[i]);
+                GAME.players[key].score = 0;
+
+                i += 1;
+            }
+        }
     },
 
     tick: function () {
@@ -643,5 +694,4 @@ GAME.spawns = [{
     y: (GAME.map_height - 2) * TILE_SIZE,
     z: 2
 }];
-
 
