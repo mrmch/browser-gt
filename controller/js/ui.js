@@ -37,10 +37,13 @@ var UI = function () {
         // figure out which events are going to be used
         $('body').one('mousemove', function(e){
             ui.use_events = ui.event_types.mouse;
+            container.on(ui.use_events.listen_string, 'div', ui.fireEvent);
             console.log("We're going to use mouse events", ui.use_events);
+            
         }).one('touchstart', function(e) {
             $('body').unbind('mousemove');
-            use_events = ui.event_types.touch;
+            ui.use_events = ui.event_types.touch;
+            container.on(ui.use_events.listen_string, 'div', ui.fireEvent);
             console.log("We're going to use touch events", ui.use_events);
         });
 
@@ -56,12 +59,10 @@ var UI = function () {
         for (i = 0; i < ui.controls.length; i++) {
             container.append(ui.controls[i].render({controlId:i}));
         }
-
-        container.on(ui.use_events.listen_string, 'div', ui.fireEvent);
     };
     
     ui.fireEvent = function(e) {
-        var controlId = parseInt($(this).data('controlId')) || 0;
+        var controlId = parseInt($(e.target).data('controlId')) || 0;
         ui.controls[controlId].fireEvent(e);
     };
     
@@ -70,26 +71,31 @@ var UI = function () {
 
 var COMPONENT = function (init, ui) {
     var component = {},
-        x, y, w, h, fill, type, action, fireOnce, text, state, bounds, intervalTimeout;
+        x, y, w, h, fill, type, action, fireOnce, text, state, bounds, interval_timeout,
+        interval = 0;
+    
+    // we send these down to the server
+    action = init.action || '';
+    state = init.state || 'up';
     
     x = init.x || 0;
     y = init.y || 0;
     w = init.w || ui.box_size;
     h = init.h || ui.box_size;
     fill = init.fill || '#FF6600';
-    type = init.type || 'button';
-    action = init.action || '';
-    fireOnce = init.fireOnce || false;
     text = init.text || false;
-    state = init.state || 'up';
+    
+    type = init.type || 'button';
     bounds = init.bounds || ['top', 'left'];
+    
+    fireOnce = init.fireOnce || false;
     interval_timeout = 50;
     
     component.render = function(opts) {
         var controlId = opts.controlId || null,
             el = document.createElement('div'),
             text = document.createElement('span');
-
+        
         $(el)
             .attr('id', action)
             .data('controlId', parseInt(controlId)) 
@@ -103,12 +109,11 @@ var COMPONENT = function (init, ui) {
             .css(bounds[1], x);
 
         if (text) {
-            $(text).text(text); // TODO: just wow...
+            $(text).text(text); // TODO: just... wow.
             $(text).css('font-size', w + 'px');
             $(el).append(text);
         }
 
-        el = '#' + action;
         return el;
     };
     
@@ -116,25 +121,25 @@ var COMPONENT = function (init, ui) {
         e.preventDefault();
 
         if (e.type == ui.use_events.start) {
-            $(el).bind(ui.use_events.leave, ui.fireEvent);
+            $(e.target).bind(ui.use_events.leave, ui.fireEvent);
             component.fireMouseDown(); 
         
         } else if (e.type == ui.use_events.stop) {
-            component.fireMouseUp();
+            component.fireMouseUp(e);
         
         } else if (e.type == ui.use_events.leave) {
-            component.fireMouseUp();
+            component.fireMouseUp(e);
         }
     };
 
-    component.fireMouseDown = function() {
-        console.log('fireMouseDown', this);
+    component.fireMouseDown = function(e) {
+        console.log('fireMouseDown', component);
         state = 'down';
 
         clearInterval(interval);
 
         // fire the event!
-        CONTROLLER.actions.send("button", component);
+        CONTROLLER.actions.send("button", {action: action, state: state});
 
         // set interval for repeated events
         if (!fireOnce) {
@@ -145,14 +150,14 @@ var COMPONENT = function (init, ui) {
 
     };
 
-    component.fireMouseUp = function() {
-        console.log('fireMouseUp', this);
+    component.fireMouseUp = function(e) {
+        console.log('fireMouseUp', component);
 
         clearInterval(interval);
 
-        $(el).unbind(ui.use_events.leave);
+        $(e.target).unbind(ui.use_events.leave);
         state = 'up';
-        CONTROLLER.actions.send("button", component);
+        CONTROLLER.actions.send("button", {action: action, state: state});
     };
     
     return component;

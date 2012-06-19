@@ -48,7 +48,7 @@ var CONTROLLER = (function (controller, $) {
         };
         
         emit.isThrottled = function() {
-            if (counter > rate_max) {
+            if (emit.counter > rate_max) {
                 return true;
             }
             return false;
