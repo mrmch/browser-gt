@@ -103,9 +103,8 @@ var GAME = GAME || {
     controller_action: function (player_id, action) {
         'use strict';
 
-
-        if (action.hasOwnProperty('button')) {
-            var b = action.button;
+        if (action.type == "button") {
+            var b = action.data;
             b.player_id = player_id;
             GAME.players[player_id].e.trigger(b.action + player_id, b);
         }
