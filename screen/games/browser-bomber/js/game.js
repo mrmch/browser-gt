@@ -141,6 +141,7 @@ var GAME = GAME || {
 
         GAME.num_players = GAME.num_players + 1;
         $("#game_status").html("Player joined! " + player_id);
+        GAME.drawScoreBoard();
     },
 
     player_left: function (player_id) {
@@ -481,18 +482,20 @@ var GAME = GAME || {
                     }).onHit('Flame', function () {
                         this.stop();
                         this.addComponent('dead');
-                        this.dead = true;
 
                         var checkHit = this.hit('Flame'),
                             flameHit;
-                        if (checkHit) {
-                            flameHit = hit[0].obj;
+                        if (checkHit && !this.dead) {
+                            this.dead = true;
+                            flameHit = checkHit[0].obj;
 
                             if (flameHit.player_id == this.player_id) {
                                 // suicide!
                                 GAME.players[this.player_id].score -= 1;
+                                GAME.players[this.player_id].e.updateScoreBoard();
                             } else {
                                 GAME.players[flameHit.player_id].score += 1;
+                                GAME.players[flameHit.player_id].e.updateScoreBoard();
                             }
                         }
 
@@ -548,7 +551,14 @@ var GAME = GAME || {
                 this.attr(spawn);
                 this.addComponent(colour + 'Sprite');
                 this.dead = false;
-            }
+            },
+
+            updateScoreBoard: function() {
+                var score = GAME.players[this.player_id].score,
+                    score_el = this.player_id;
+                score_el = $('#' + score_el + ' span');
+                score_el.text(score);
+            },
         });
 
     },
@@ -628,6 +638,36 @@ var GAME = GAME || {
         'use strict';
 
         GAME.generateWorld();
+        GAME.drawScoreBoard();
+    },
+
+    drawScoreBoard: function() {
+        /**
+         * Draws the scoreboard
+         */
+
+        'use strict';
+
+        var sb = $('#scoreboard'),
+            key,
+            html = '<ul>';
+
+        if (sb.length === 0) {
+            sb = document.createElement('div');
+            sb = $(sb);
+            sb.attr('id', 'scoreboard');
+            $(Crafty.stage.elem).before(sb);
+        }
+
+        for (key in GAME.players) {
+            if (GAME.players.hasOwnProperty(key)) {
+                html += '<li id="' + GAME.players[key].id + '">' + 
+                    GAME.players[key].colour + ': <span>' +
+                    GAME.players[key].score + '</span></li>';
+            }
+        }
+        html += '</ul>';
+        sb.html(html);
     },
 
     newGame: function () {
@@ -637,15 +677,24 @@ var GAME = GAME || {
         var i = 0,
             key;
 
+        Crafty.scene("main");
+
         for (key in GAME.players) {
             if (GAME.players.hasOwnProperty(key)) {
-
-                GAME.players[key].e.respawn(GAME.spawns[i]);
+                //GAME.players[key].e.respawn(GAME.spawns[i]);
+                GAME.players[key].e.destroy();
                 GAME.players[key].score = 0;
+                GAME.players[key].e = Crafty
+                    .e('2D, DOM, ' + GAME.players[key].colour + 'Sprite, player, Player')
+                    .attr(GAME.spawns[i])
+                    .Player(key);
 
                 i += 1;
             }
         }
+
+        GAME.drawScoreBoard();
+
     },
 
     tick: function () {
