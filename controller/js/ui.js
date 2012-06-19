@@ -1,5 +1,5 @@
 var UI = function () {
-    var ui = {}, container;
+    var ui = {}, container, toggles;
     
     ui.controls = [];
     ui.box_size = 60;
@@ -34,6 +34,9 @@ var UI = function () {
         container = opts.container || '#controller';
         container = $(container);
         
+        toggles = opts.toggles || '#toggles';
+        toggles = $(toggles);
+        
         // figure out which events are going to be used
         $('body').one('mousemove', function(e){
             ui.use_events = ui.event_types.mouse;
@@ -62,6 +65,11 @@ var UI = function () {
         
         for (i = 0; i < ui.controls.length; i++) {
             container.append(ui.controls[i].render({controlId:i}));
+        }
+        
+        if (CONTROLLER.meta.sensors.indexOf("accelerometer") != -1) {
+            toggles.append($("<input type='checkbox' id='toggle_accelerometer' name='toggle_accelerometer'/>"));
+            toggles.append($("<label for='toggle_accelerometer'>Disable accelerometer</label>"))
         }
     };
     

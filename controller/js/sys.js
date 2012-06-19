@@ -93,6 +93,14 @@ var CONTROLLER = (function (controller, $) {
     controller.sensors = (function() {
         var sensors = {};
         
+        sensors.toggleSensor = function(sensor_name) {
+            if (controller.meta.sensors.indexOf(sensor_name) != -1) {
+                controller.meta.sensors.splice(controller.meta.sensors.indexOf(sensor_name), 1);
+            } else {
+                controller.meta.sensors.push(sensor_name);
+            }
+        };
+                
         sensors.processSensors = function() {
             if (controller.meta.sensors.indexOf("accelerometer") != -1) {
                 console.log('enable accelerometer tracking');
@@ -103,16 +111,22 @@ var CONTROLLER = (function (controller, $) {
         sensors.enableAccelerometer = function() {
             if (window.DeviceOrientationEvent) {
                 window.addEventListener("deviceorientation", function () {
-                    controller.actions.send('accelerometer', [event.beta, event.gamma]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [event.beta, event.gamma]);
+                    }
                 }, true);
             
             } else if (window.DeviceMotionEvent) {
                 window.addEventListener('devicemotion', function () {
-                    controller.actions.send('accelerometer', [event.acceleration.x * 2, event.acceleration.y * 2]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [event.acceleration.x * 2, event.acceleration.y * 2]);
+                    }
                 }, true);
             } else {
                 window.addEventListener("MozOrientation", function () {
-                    controller.actions.send('accelerometer', [orientation.x * 50, orientation.y * 50]);
+                    if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+                        controller.actions.send('accelerometer', [orientation.x * 50, orientation.y * 50]);
+                    }
                 }, true);
             }
         };
