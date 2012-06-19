@@ -119,7 +119,7 @@ var GAME = {
     controller_action: function(player_id, action) {
         var direction = {x: 0, y: 0}, delta = 3;
         
-        if (action.hasOwnProperty('accelerometer')) {
+        if (action.type == "accelerometer") {
             if (action.accelerometer[0] > 20) {
                 direction.y += delta;
             } else if (action.accelerometer[0] < -20) {
