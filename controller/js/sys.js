@@ -34,6 +34,7 @@ var CONTROLLER = (function (controller, $) {
             
             server.id = 0;
             $(dom.controller).empty();
+            $(dom.toggles).empty();
         };
         
         server.setMeta = function(game_meta) {
