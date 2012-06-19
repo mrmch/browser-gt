@@ -73,11 +73,12 @@
                     
           $(function() {
             $(".joinScreen").live('click', function() {
-              CONTROLLER.server.join($(this).attr("id"));
+              CONTROLLER.server.join($(this).attr("id"), function() {
+                ui = new UI();
+                ui.init({});
+              });
+              
               CONTROLLER.ui.joinedScreen();
-
-              ui = new UI();
-              ui.init({});
 
               return false;
             });

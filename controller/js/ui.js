@@ -46,14 +46,18 @@ var UI = function () {
             container.on(ui.use_events.listen_string, 'div', ui.fireEvent);
             console.log("We're going to use touch events", ui.use_events);
         });
-
-        // render UI
-        for (i = 0; i < dpad.length; i++) {
-            ui.controls.push(new COMPONENT(dpad[i], ui));
+        
+        if (CONTROLLER.meta.actions.indexOf("dpad") != -1) {
+            // render UI
+            for (i = 0; i < dpad.length; i++) {
+                ui.controls.push(new COMPONENT(dpad[i], ui));
+            }
         }
-
-        for (i = 0; i < abpad.length; i++) {
-            ui.controls.push(new COMPONENT(abpad[i], ui));
+        
+        if (CONTROLLER.meta.actions.indexOf("abpad") != -1) {
+            for (i = 0; i < abpad.length; i++) {
+                ui.controls.push(new COMPONENT(abpad[i], ui));
+            }
         }
         
         for (i = 0; i < ui.controls.length; i++) {

@@ -1,9 +1,9 @@
 var CONTROLLER = (function (controller, $) {
     var dom = {}, // dict of $ objects: debug, controller, screens
         id = Math.round(Math.random() * 1000000000),
-        emit_reset_id = 0,
-        meta = {};
+        emit_reset_id = 0;
     
+    controller.meta = {};
     controller.id = id;
     controller.screens = [];
     
@@ -20,8 +20,10 @@ var CONTROLLER = (function (controller, $) {
             return false;
         };
         
-        server.join = function(server_id) {
-            controller.socket.emit("join screen", server_id);
+        server.join = function(server_id, callback) {
+            controller.socket.emit("join screen", server_id, function(success) {
+                success && callback && callback();
+            });
             server.id = server_id;
         };
 
@@ -35,7 +37,7 @@ var CONTROLLER = (function (controller, $) {
         };
         
         server.setMeta = function(game_meta) {
-            meta = game_meta;
+            controller.meta = game_meta;
             
             controller.sensors.processSensors();
         }
@@ -92,7 +94,7 @@ var CONTROLLER = (function (controller, $) {
         var sensors = {};
         
         sensors.processSensors = function() {
-            if (meta.sensors.indexOf("accelerometer") != -1) {
+            if (controller.meta.sensors.indexOf("accelerometer") != -1) {
                 console.log('enable accelerometer tracking');
                 controller.sensors.enableAccelerometer();
             }
