@@ -4,13 +4,7 @@
     "author":       "Matt Harris, Grigory Kruglov",
     "description":  "Browser based bomberman clone",
 
-    "actions": [
-        "LEFT",
-        "RIGHT",
-        "UP",
-        "DOWN",
-        "ENTER"
-    ],
+    "actions": ["dpad", "abpad"],
   
     "imports": [
         "js/crafty.js",
