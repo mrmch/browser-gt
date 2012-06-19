@@ -75,7 +75,7 @@
             socket.on('new action ' + screen_id, function(o) {
                 // controller performed an action
                 // o[0]: controller id
-                // o[1]: action object
+                // o[1]: action object: {type, data}
                 if (!inGame) {
                     return;
                 } 
