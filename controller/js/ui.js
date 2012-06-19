@@ -26,7 +26,7 @@ var UI = function () {
                 y: 0
             }),
             
-            two_buttons = COMPONENT_SETS.twoButtons({
+            abpad = COMPONENT_SETS.abpad({
                 x: 0,
                 y: 0
             });
@@ -52,8 +52,8 @@ var UI = function () {
             ui.controls.push(new COMPONENT(dpad[i], ui));
         }
 
-        for (i = 0; i < two_buttons.length; i++) {
-            ui.controls.push(new COMPONENT(two_buttons[i], ui));
+        for (i = 0; i < abpad.length; i++) {
+            ui.controls.push(new COMPONENT(abpad[i], ui));
         }
         
         for (i = 0; i < ui.controls.length; i++) {
@@ -205,7 +205,7 @@ var COMPONENT_SETS = (function (components) {
         return buttons;
     };
 
-    components.twoButtons = function(opts) {
+    components.abpad = function(opts) {
         opts.x = opts.x || 0;
         opts.y = opts.y || 0;
         opts.w = opts.w || 100;
