@@ -112,7 +112,16 @@
                     var game_id = $(this).attr("id"),
                         imports = gameData[game_id].imports,
                         ready_imports = [];
-
+                      
+                    // notify server of game actions and sensors
+                    // server will inform connecting controllers
+                    socket.emit('set meta', {
+                      actions: gameData[game_id].actions,
+                      sensors: gameData[game_id].sensors
+                    });
+                    
+                    socket.emit('message', {'message': 'power up!'});
+                    
                     // hide screen UI
                     $(".header").hide();
 

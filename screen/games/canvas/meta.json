@@ -4,7 +4,8 @@
     "author":   "Grigory Kruglov",
     "description": "Platform test",
     
-    "actions": ["accelerometer"],
+    "actions": [],
+    "sensors": ["accelerometer"],
     
     "imports": [
         "js/game.js"

@@ -5,6 +5,7 @@
     "description":  "Browser based bomberman clone",
 
     "actions": ["dpad", "abpad"],
+    "sensors": [],
   
     "imports": [
         "js/crafty.js",

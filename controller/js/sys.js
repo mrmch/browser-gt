@@ -1,13 +1,13 @@
 var CONTROLLER = (function (controller, $) {
     var dom = {}, // dict of $ objects: debug, controller, screens
         id = Math.round(Math.random() * 1000000000),
-        emit_reset_id = 0;
+        emit_reset_id = 0,
+        meta = {};
     
-    // define our modules
     controller.id = id;
-    
     controller.screens = [];
     
+    // define our modules
     controller.server = (function() {
         var server = {};
         
@@ -33,6 +33,12 @@ var CONTROLLER = (function (controller, $) {
             server.id = 0;
             $(dom.controller).empty();
         };
+        
+        server.setMeta = function(game_meta) {
+            meta = game_meta;
+            
+            controller.sensors.processSensors();
+        }
         
         return server;
     }());
@@ -60,6 +66,14 @@ var CONTROLLER = (function (controller, $) {
     controller.actions = (function() {
         var actions = {};
         
+        actions.set = function(new_actions) {
+            game_actions = new_actions;
+            
+            if ('accelerometer' in game_actions) {
+                controller.sensors.enableAccelerometer();
+            }
+        };
+        
         actions.send = function(name, o) {
             if (!controller.server.connected() || controller.emit.isThrottled()) {
                 return;
@@ -69,13 +83,20 @@ var CONTROLLER = (function (controller, $) {
             controller.socket.emit('action', {'type': name, 'data': o});
             
             controller.util.debug(name + ": " + o[0] + " : " + o[1]);
-        }
+        };
                 
         return actions;
     }());
     
     controller.sensors = (function() {
         var sensors = {};
+        
+        sensors.processSensors = function() {
+            if (meta.sensors.indexOf("accelerometer") != -1) {
+                console.log('enable accelerometer tracking');
+                controller.sensors.enableAccelerometer();
+            }
+        };
         
         sensors.enableAccelerometer = function() {
             if (window.DeviceOrientationEvent) {

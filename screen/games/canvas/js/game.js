@@ -120,15 +120,15 @@ var GAME = {
         var direction = {x: 0, y: 0}, delta = 3;
         
         if (action.type == "accelerometer") {
-            if (action.accelerometer[0] > 20) {
+            if (action.data[0] > 20) {
                 direction.y += delta;
-            } else if (action.accelerometer[0] < -20) {
+            } else if (action.data[0] < -20) {
                 direction.y -= delta;
             }
 
-            if (action.accelerometer[1] > 20) {
+            if (action.data[1] > 20) {
                 direction.x += delta;
-            } else if (action.accelerometer[1] < -20) {
+            } else if (action.data[1] < -20) {
                 direction.x -= delta;
             }
             

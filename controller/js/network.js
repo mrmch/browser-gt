@@ -12,6 +12,10 @@ var CONTROLLER = (function (controller) {
 
         controller.ui.updateScreenList();
     });
+    
+    controller.socket.on('set meta', function(meta) {
+        controller.server.setMeta(meta);
+    });
 
     controller.socket.on('connect', function() {
         controller.socket.emit('set controller_id', controller.id);

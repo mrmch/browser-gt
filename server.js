@@ -2,7 +2,8 @@ var express = require('express'),
     app = express.createServer(), 
     io = require('socket.io').listen(app),
     controllers = [],
-    screens = [];
+    screens = [],
+    screen_meta = {};
 
 app.get('/screen', function(req, res){
     res.redirect('/screen/index.html');
@@ -24,6 +25,12 @@ var screen_io = io.of('/screens').on('connection', function(socket) {
         
         socket.set('screen_id', screen_id, function() {
            controller_io.emit('updated screen list', screens); 
+        });
+    });
+    
+    socket.on('set meta', function(meta) {
+        socket.get('screen_id', function(err, screen_id) {
+            screen_meta[screen_id] = meta;
         });
     });
     
@@ -59,6 +66,7 @@ var controller_io = io.of('/controllers').on('connection', function(socket) {
                 screen_io.emit('controller joined ' + screen_id, controller_id);
             });
         });
+        socket.emit('set meta', screen_meta[screen_id]);
     });
     
     socket.on('disconnect', function() {
