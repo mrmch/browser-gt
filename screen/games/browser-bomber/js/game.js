@@ -137,6 +137,8 @@ var GAME = GAME || {
 
         console.log('New player colour: ' + colour);
 
+        // @todo set this player as in control, emit message
+
         GAME.players[player_id] = {
             e: Crafty
                 .e('2D, DOM, ' + colour + 'Sprite, player, Player')
@@ -260,7 +262,7 @@ var GAME = GAME || {
                 var len = GAME.powerups.length,
                     rand = 0;
 
-                rand = Crafty.math.randomInt(0, len + 1);
+                rand = Crafty.math.randomInt(0, len + 5);
 
                 if (rand < len) {
                     Crafty.e('2D, DOM, PowerUp')
@@ -475,6 +477,8 @@ var GAME = GAME || {
                             powerup = hit[0].obj;
                             powerup.destroy();
                             this[powerup.prop] = powerup.func(this);
+
+                            // @todo socket.emit tell player they have powerup
                         }
                     }).bind('Moved', function (from) {
                         if (this.hit('solid')) {
@@ -578,7 +582,7 @@ var GAME = GAME || {
          */
         'use strict';
 
-        var ground,
+        var ground = Crafty.math.randomInt(1, 4),
             box = 'box' + Crafty.math.randomInt(1, 2),
             block = 'block' + Crafty.math.randomInt(1, 2),
             i = 0,
@@ -627,7 +631,6 @@ var GAME = GAME || {
                 }
 
                 // draw ground
-                ground = Crafty.math.randomInt(1, 4);
                 Crafty.e("2D, DOM, ground" + ground)
                     .attr({
                         x: i * GAME.tile_size,
