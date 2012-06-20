@@ -650,12 +650,20 @@ var GAME = GAME || {
 
         var sb = $('#scoreboard'),
             key,
-            html = '<ul>';
+            html = '<ul>',
+            ngbtn;
 
         if (sb.length === 0) {
+            ngbtn = document.createElement('button');
+            ngbtn = $(ngbtn);
+            ngbtn.attr('id', 'newgame').click(function() { GAME.newGame(); });
+            ngbtn.text('New Game');
+
             sb = document.createElement('div');
             sb = $(sb);
             sb.attr('id', 'scoreboard');
+
+            $(Crafty.stage.elem).before(ngbtn);
             $(Crafty.stage.elem).before(sb);
         }
 
