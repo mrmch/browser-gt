@@ -70,6 +70,14 @@ var controller_io = io.of('/controllers').on('connection', function(socket) {
         success(true);
     });
     
+    socket.on('msg', function(message) {
+        socket.get('controller_id', function(err, controller_id) {
+            socket.get('on_screen', function(err, screen_id) {
+                screen_io.emit('msg ' + screen_id, [controller_id, message]);
+            });
+        });
+    });
+    
     socket.on('disconnect', function() {
         socket.get('controller_id', function(err, controller_id) {
             controllers.splice(controllers.indexOf(controller_id), 1);

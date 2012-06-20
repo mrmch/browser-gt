@@ -109,6 +109,14 @@ var GAME = GAME || {
             GAME.players[player_id].e.trigger(b.action + player_id, b);
         }
     },
+    
+    controller_message: function (player_id, message) {
+        'use strict';
+        
+        if (message == "new game") {
+            GAME.newGame();
+        }
+    },
 
     player_joined: function (player_id) {
         'use strict';

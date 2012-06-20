@@ -41,7 +41,11 @@ var CONTROLLER = (function (controller, $) {
             controller.meta = game_meta;
             
             controller.sensors.processSensors();
-        }
+        };
+        
+        server.message = function(message) {
+            controller.socket.emit('msg', message);
+        };
         
         return server;
     }());
