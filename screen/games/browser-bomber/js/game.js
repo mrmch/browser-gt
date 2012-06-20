@@ -27,7 +27,7 @@ var GAME = GAME || {
     map_width: 25,
     map_height: 17,
     tile_size: TILE_SIZE,
-    player_sprite_size: 28,
+    player_sprite_size: 20,
     max_players: 4,
     num_players: 0,
     bomb_timer: 1000, // 30 ms
@@ -202,24 +202,25 @@ var GAME = GAME || {
                 WhiteSprite: [0, 0]
             });
             */
+            var plr_spr = '_player_20x20.gif';
 
             Crafty.sprite(GAME.player_sprite_size, 
-                GAME.sprite_base + 'white_player_28x28.gif', {
+                GAME.sprite_base + 'white' + plr_spr, {
                 WhiteSprite: [0, 0]
             });
 
             Crafty.sprite(GAME.player_sprite_size, 
-                GAME.sprite_base + 'red_player_28x28.gif', {
+                GAME.sprite_base + 'red' + plr_spr, {
                 RedSprite: [0, 0]
             });
 
             Crafty.sprite(GAME.player_sprite_size, 
-                GAME.sprite_base + 'blue_player_28x28.gif', {
+                GAME.sprite_base + 'blue' + plr_spr, {
                 BlueSprite: [0, 0]
             });
 
             Crafty.sprite(GAME.player_sprite_size, 
-                GAME.sprite_base + 'green_player_28x28.gif', {
+                GAME.sprite_base + 'green' + plr_spr, {
                 GreenSprite: [0, 0]
             });
 
@@ -416,10 +417,10 @@ var GAME = GAME || {
                 this.player_id = player_id;
 
                 this.requires('Collision, SpriteAnimation, Grid')
-                    .animate('walk_down',   0, 0, 7)
-                    .animate('walk_left',   0, 2, 7)
-                    .animate('walk_up',     0, 3, 7)
-                    .animate('walk_right',  0, 1, 7)
+                    .animate('walk_down',   0, 0, 4)
+                    .animate('walk_left',   0, 3, 4)
+                    .animate('walk_up',     0, 2, 4)
+                    .animate('walk_right',  0, 1, 4)
                     .bind('EnterFrame', function (e) {
                         var from = {x: this.x, y: this.y};
 
