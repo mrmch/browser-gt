@@ -18,13 +18,14 @@ app.use('/controller/', express.static(__dirname + '/controller/'));
 app.listen(8080);
 
 var screen_io = io.of('/screens').on('connection', function(socket) {
-    socket.on('set screen_id', function(screen_id) {
+    socket.on('set screen_id', function(screen_id, callback) {
         if (screens.indexOf(screen_id) == -1) {
             screens.push(screen_id);
         }
         
         socket.set('screen_id', screen_id, function() {
-           controller_io.emit('updated screen list', screens); 
+           controller_io.emit('updated screen list', screens);
+           callback && callback();
         });
     });
     
