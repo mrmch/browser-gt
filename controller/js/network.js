@@ -8,7 +8,7 @@ var CONTROLLER = (function (controller) {
         }
 
         controller.screens = updated_screens;
-        controller.util.debug("Total screens: " + controller.screens.length);
+        // controller.util.debug("Total screens: " + controller.screens.length);
 
         controller.ui.updateScreenList();
     });
@@ -18,7 +18,11 @@ var CONTROLLER = (function (controller) {
     });
 
     controller.socket.on('connect', function() {
-        controller.socket.emit('set controller_id', controller.id);
+        controller.socket.emit('set controller_id', controller.id, function(s) {
+            if (s) {
+                controller.server.ready = true;
+            }
+        });
     });
 
     controller.socket.on('disconnect', function() {

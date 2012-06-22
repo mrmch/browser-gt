@@ -66,13 +66,35 @@
         <script src="/controller/js/helper.js"></script>
         
         <script>
-          var ui;
+          var ui, app_id;
+          
+          function GET(name) {
+            name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+            var regexS = "[\\?&]" + name + "=([^&#]*)";
+            var regex = new RegExp(regexS);
+            var results = regex.exec(window.location.search);
+            if(results == null) {
+              return "";
+            } else {
+              return decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+          }
+          
+          app_id = GET("id");
           
           CONTROLLER.init({
             dom: {controller: "#controller", toggles: "#toggles", screens: "ul#screens", debug: "#debug"}
           });
-                    
+                              
           $(function() {
+            // for auto-join cases
+            if (app_id != "") {
+              CONTROLLER.server.onReadyJoin(app_id, function() {
+                ui = new UI();
+                ui.init({});
+              });
+            }
+            
             $(".joinScreen").live('click', function() {
               CONTROLLER.server.join($(this).attr("id"), function() {
                 ui = new UI();

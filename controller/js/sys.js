@@ -12,6 +12,21 @@ var CONTROLLER = (function (controller, $) {
         var server = {};
         
         server.id = 0;
+        server.ready = false;
+        
+        server.onReadyCallback = false;
+        
+        server.onReadyJoin = function(server_id, callback) {
+            controller.server.onReadyCallback = true;
+            
+            var t = setInterval(function() {
+                if (!controller.server.ready) {
+                    return;
+                }
+                controller.server.join(server_id, callback);
+                clearInterval(t);
+            }, 10);
+        }
         
         server.connected = function() {
             if (server.id) {
@@ -142,6 +157,10 @@ var CONTROLLER = (function (controller, $) {
     // TODO: move this out into ui module
     controller.ui = {
         updateScreenList: function() {
+            if (controller.server.onReadyCallback) {
+                return;
+            }
+            
             $(dom.screens).show();
             $(dom.screens).html("");
 

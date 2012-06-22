@@ -43,13 +43,15 @@ var screen_io = io.of('/screens').on('connection', function(socket) {
 });
 
 var controller_io = io.of('/controllers').on('connection', function(socket) {
-    socket.on('set controller_id', function (controller_id) {
+    socket.on('set controller_id', function (controller_id, callback) {
         if (controllers.indexOf(controller_id) == -1) {
             controllers.push(controller_id);
         }
 
         socket.set('controller_id', controller_id);
         socket.emit('updated screen list', screens);
+        
+        callback && callback(true);
     });
     
     socket.on('action', function(action) {
