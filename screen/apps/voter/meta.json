@@ -1,0 +1,13 @@
+{
+    "name":     "Social Voter",
+    "id":       "voter",
+    "author":   "Grigory Kruglov",
+    "description": "Embedded platform test",
+    
+    "actions": ["abpad"],
+    "sensors": [],
+    
+    "imports": [
+        "bookmarklet.js"
+    ]
+}
