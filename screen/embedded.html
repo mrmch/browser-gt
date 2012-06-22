@@ -1,0 +1,43 @@
+<html>
+<head></head>
+<body>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/screen/js/emb_screen.js"></script>
+  
+  <script>
+    var app_name = GET('id');
+  
+    function GET(name) {
+      name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+      var regexS = "[\\?&]" + name + "=([^&#]*)";
+      var regex = new RegExp(regexS);
+      var results = regex.exec(window.location.search);
+      if(results == null) {
+        return "";
+      } else {
+        return decodeURIComponent(results[1].replace(/\+/g, " "));
+      }
+    }
+    
+    function loadJSAsset(path) {
+      var elem = document.createElement("script");
+      elem.setAttribute("src", path);
+      $('body').append(elem);
+    }
+  
+    $.ajax({
+      url: "/screen/apps/" + app_name + "/meta.json",
+      dataType: 'json',
+      success: function(res) {
+        for (var i = 0; i < res.imports.length; i++) {
+          loadJSAsset("/screen/apps/" + app_name + "/" + res.imports[i]);
+        }
+
+        EMBSCREEN.init({meta: {
+          actions: res.actions,
+          sensors: res.sensors
+        }});
+      }
+    });
+  </script>
