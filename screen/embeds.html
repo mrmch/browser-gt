@@ -36,7 +36,7 @@
                           b = document.createElement("a");
                           l = document.createElement("li");
 
-                          b.href = 'javascript:(function(){var i, d; d = document.createElement("div");d.style.width="40em";d.style.height="26em";d.style.marginTop="-13em";d.style.marginLeft="-20em";d.style.position="fixed";d.style.top="50%";d.style.left="50%";d.style.border="1px solid #ccc";d.style.backgroundColor="#f3f3f3";i = document.createElement("iframe");i.src="http://192.168.1.102:8080/screen/embedded.html?id=' + apps[appId] + '";i.style.borderStyle="none";i.style.width="100%";i.style.height="100%";d.appendChild(i);document.getElementsByTagName("body")[0].appendChild(d);}());';
+                          b.href = 'javascript:(function(){var i, d; d = document.createElement("div");d.style.width="40em";d.style.height="26em";d.style.marginTop="-13em";d.style.marginLeft="-20em";d.style.position="fixed";d.style.top="50%";d.style.left="50%";d.style.border="1px solid #ccc";d.style.backgroundColor="#f3f3f3";i = document.createElement("iframe");i.src="http://' + window.location.host + '/screen/embedded.html?id=' + apps[appId] + '";i.style.borderStyle="none";i.style.width="100%";i.style.height="100%";d.appendChild(i);document.getElementsByTagName("body")[0].appendChild(d);}());';
                           b.innerHTML = res.name;
                           l.appendChild(b);
                           $("#app_list").append(l);
