@@ -21,9 +21,10 @@ app.listen(process.env.NODE_ENV === 'production' ? 8080 : 8080, function() {
     // if run as root, downgrade to the owner of this file
     if (process.getuid() === 0) {
         require('fs').stat(__filename, function(err, stats) {
-            if (err) return console.log(err) {
-                process.setuid(stats.uid);
+            if (err) {
+                return console.log(err);
             }
+            process.setuid(stats.uid);
         });
     }
 });
