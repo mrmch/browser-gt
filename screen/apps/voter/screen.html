@@ -1,0 +1,67 @@
+<style>
+  #chart {
+    height: 300px;
+  }
+  .title {
+    display: inline;
+    width: 250px;
+    float: left;
+  }
+  .qrcode {
+    display: inline;
+    float: right;
+  }
+  .clear {
+    clear: both;
+  }
+</style>
+
+<script>
+  var chart;
+  var APP = (function(app) {
+    
+    app.chart = nv.models.discreteBarChart()
+      .x(function(d) { return d.label })
+      .y(function(d) { return d.value })
+      .staggerLabels(true)
+      .tooltips(false)
+      .showValues(true);
+    
+    app.updateChart = function() {
+      d3.select('#chart svg')
+        .datum(APP.voting_data)
+        .transition().duration(500)
+        .call(app.chart);
+      nv.utils.windowResize(chart.update);
+    };
+    
+    return app;
+  }(APP || {}));
+  
+  nv.addGraph(function() {
+    APP.updateChart();
+    return APP.chart;
+  });
+
+</script>
+
+<div class="header">
+  <div class="title">
+    <h1>Social Voting</h1>
+    
+    <div class="question">
+      <!-- <label for="q">Question: </label><input type="text" name="q" id="q">
+      
+      <input type="button" value="Set"> -->
+    </div>
+  </div>
+  <div class="qrcode">
+    <img id="qrcode" src="">
+  </div>
+</div>
+
+<div class="clear"></div>
+
+<div id="chart">
+  <svg/>
+</div>

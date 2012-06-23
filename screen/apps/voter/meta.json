@@ -10,6 +10,8 @@
     "controller_ui": "controller.html",
     
     "imports": [
+        "d3.v2.js",
+        "nv.d3.js",
         "bookmarklet.js"
     ]
 }
