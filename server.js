@@ -15,7 +15,7 @@ app.get('/controller', function(req, res){
 app.use('/screen/', express.static(__dirname + '/screen/', { maxAge: 31557600000 }));
 app.use('/controller/', express.static(__dirname + '/controller/'));
 
-app.listen(8080);
+app.listen(30886);
 
 var screen_io = io.of('/screens').on('connection', function(socket) {
     socket.on('set screen_id', function(screen_id, callback) {
