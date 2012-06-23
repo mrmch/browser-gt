@@ -15,7 +15,18 @@ app.get('/controller', function(req, res){
 app.use('/screen/', express.static(__dirname + '/screen/'));
 app.use('/controller/', express.static(__dirname + '/controller/'));
 
-app.listen(8080);
+app.listen(process.env.NODE_ENV === 'production' ? 8080 : 8080, function() {
+    console.log('Ready');
+
+    // if run as root, downgrade to the owner of this file
+    if (process.getuid() === 0) {
+        require('fs').stat(__filename, function(err, stats) {
+            if (err) return console.log(err) {
+                process.setuid(stats.uid);
+            }
+        });
+    }
+});
 
 var screen_io = io.of('/screens').on('connection', function(socket) {
     socket.on('set screen_id', function(screen_id, callback) {
