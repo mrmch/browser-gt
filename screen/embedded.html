@@ -33,11 +33,13 @@
         for (var i = 0; i < res.imports.length; i++) {
           loadJSAsset("/screen/apps/" + app_name + "/" + res.imports[i]);
         }
-
-        EMBSCREEN.init({meta: {
-          actions: res.actions,
-          sensors: res.sensors
-        }});
+        
+        EMBSCREEN.init({
+          "meta": {
+            actions: res.actions,
+            sensors: res.sensors
+          }
+        });
       }
     });
   </script>
