@@ -126,7 +126,7 @@ var CONTROLLER = (function (controller, $) {
         };
                 
         sensors.processSensors = function() {
-            if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+            if (controller.meta.sensors && controller.meta.sensors.indexOf("accelerometer") != -1) {
                 console.log('enable accelerometer tracking');
                 controller.sensors.enableAccelerometer();
             }
