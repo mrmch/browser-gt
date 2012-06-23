@@ -1,0 +1,17 @@
+{
+  "author": "Grigory Kruglov, Matt Harris",
+  "name": "browser-gt",
+  "description": "Networked Apps platform",
+  "version": "0.0.0",
+  "homepage": "networked.grigory.ca",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mrmch/browser-gt.git"
+  },
+  "engines": {
+    "node": "~0.6.9"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {}
+}
