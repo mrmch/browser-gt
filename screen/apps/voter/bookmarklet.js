@@ -7,7 +7,7 @@ var APP = (function(app) {
     app.start = function() {
         $(function() {
             var base_url = window.location.host;
-            $("body").append("<h1>Social Voting</h1>");
+            $("body").append("<h1>Social Voting: " + EMBSCREEN.screen_id + "</h1>");
             $("body").append("<img src='https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=" + base_url + "/controller/index.html?id=" + EMBSCREEN.screen_id + "'>");
         });
     }
