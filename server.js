@@ -12,7 +12,7 @@ app.get('/controller', function(req, res){
     res.redirect('/controller/index.html');
 });
 
-app.use('/screen/', express.static(__dirname + '/screen/', { maxAge: 31557600000 }));
+app.use('/screen/', express.static(__dirname + '/screen/'));
 app.use('/controller/', express.static(__dirname + '/controller/'));
 
 app.listen(30886);
