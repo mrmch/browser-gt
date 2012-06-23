@@ -4,8 +4,10 @@
     "author":   "Grigory Kruglov",
     "description": "Embedded platform test",
     
-    "actions": ["abpad"],
+    "actions": [],
     "sensors": [],
+    
+    "controller_ui": "controller.html",
     
     "imports": [
         "bookmarklet.js"

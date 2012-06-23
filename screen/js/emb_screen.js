@@ -10,7 +10,7 @@ var EMBSCREEN = (function(embscreen) {
         embscreen.socket = io.connect(server_url + "/screens");
         embscreen.network();
         
-        embscreen.meta = o.meta || {};
+        embscreen.meta = o || {};
         
         APP.init();
         APP.start();

@@ -34,12 +34,7 @@
           loadJSAsset("/screen/apps/" + app_name + "/" + res.imports[i]);
         }
         
-        EMBSCREEN.init({
-          "meta": {
-            actions: res.actions,
-            sensors: res.sensors
-          }
-        });
+        EMBSCREEN.init(res);
       }
     });
   </script>

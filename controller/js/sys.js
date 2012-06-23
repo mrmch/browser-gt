@@ -6,6 +6,7 @@ var CONTROLLER = (function (controller, $) {
     controller.meta = {};
     controller.id = id;
     controller.screens = [];
+    controller.uiLib = false;
     
     // define our modules
     controller.server = (function() {
@@ -52,10 +53,13 @@ var CONTROLLER = (function (controller, $) {
             $(dom.toggles).empty();
         };
         
-        server.setMeta = function(game_meta) {
-            controller.meta = game_meta;
+        server.setMeta = function(meta) {
+            controller.meta = meta;
             
             controller.sensors.processSensors();
+            if ('controller_ui' in controller.meta) {
+                controller.ui.onReadySetUI(controller.meta.controller_ui);
+            }
         };
         
         server.message = function(message) {
@@ -156,6 +160,20 @@ var CONTROLLER = (function (controller, $) {
     
     // TODO: move this out into ui module
     controller.ui = {
+        set: function(ui) {
+            controller.uiLib = ui;
+        },
+        
+        onReadySetUI: function(controller_ui) {
+            var t = setInterval(function() {
+                if (!controller.uiLib) {
+                    return;
+                }
+                controller.uiLib.setControllerId(controller_ui);
+                clearInterval(t);
+            }, 10);
+        },
+        
         updateScreenList: function() {
             if (controller.server.onReadyCallback) {
                 return;
