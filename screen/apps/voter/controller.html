@@ -1,0 +1,12 @@
+<input type="button" value="A" id="buttonA">
+<input type="button" value="B" id="buttonB">
+<input type="button" value="C" id="buttonC">
+<input type="button" value="D" id="buttonD">
+
+<script>
+  $(function() {
+    $("input").click(function() {
+      CONTROLLER.server.message({'button': $(this).val()});
+    });
+  });
+</script>

@@ -26,7 +26,7 @@ var APP = (function(app) {
     }
     
     app.controller_message = function(controller_id, message) {
-        
+        console.log(message);
     }
     
     return app;
