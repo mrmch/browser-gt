@@ -1,0 +1,13 @@
+<h1>Welcome to chat app!</h1>
+<strong>Send message to the common screen:</strong>
+<label for="message">Your message </label><input type="text" id="message" name="message">
+<input type="button" id="send" value="Send">
+
+<script>
+  $(function() {
+    $("#send").click(function() {
+      CONTROLLER.server.message($("#message").val());
+      $("#message").val("");
+    });
+  });
+</script>
