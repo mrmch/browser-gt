@@ -1,0 +1,17 @@
+{
+    "name":     "Social Voter",
+    "id":       "voter",
+    "author":   "Grigory Kruglov",
+    "description": "Embedded platform test",
+    
+    "actions": [],
+    "sensors": [],
+    
+    "controller_ui": "controller.html",
+    
+    "imports": [
+        "d3.v2.js",
+        "nv.d3.js",
+        "bookmarklet.js"
+    ]
+}

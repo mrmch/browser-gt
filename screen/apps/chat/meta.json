@@ -1,0 +1,16 @@
+{
+    "name":     "Chat",
+    "id":       "chat",
+    "author":   "Grigory Kruglov",
+    "description": "Embedded platform test - chat app!",
+    
+    "actions": [],
+    "sensors": [],
+    
+    "controller_ui": "controller.html",
+    
+    "imports": [
+        "chat.ui.js",
+        "chat.js"
+    ]
+}

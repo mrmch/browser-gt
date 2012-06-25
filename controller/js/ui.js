@@ -67,7 +67,7 @@ var UI = function () {
             container.append(ui.controls[i].render({controlId:i}));
         }
         
-        toggles.append($("<input type='button' id='new_game' value='New Game'/>"));
+        // toggles.append($("<input type='button' id='new_game' value='New Game'/>"));
         
         if (CONTROLLER.meta.sensors.indexOf("accelerometer") != -1) {
             toggles.append($("<input type='checkbox' id='toggle_accelerometer' name='toggle_accelerometer'/>"));
@@ -79,6 +79,12 @@ var UI = function () {
         var controlId = parseInt($(e.target).data('controlId')) || 0;
         ui.controls[controlId].fireEvent(e);
     };
+    
+    ui.setControllerId = function(controller_ui) {
+        $.get('/screen/apps/' + CONTROLLER.meta.id + '/' + controller_ui, function(data) {
+          $('#controller').html(data);
+        });
+    }
     
     return ui;
 }
@@ -147,7 +153,6 @@ var COMPONENT = function (init, ui) {
     };
 
     component.fireMouseDown = function(e) {
-        console.log('fireMouseDown', component);
         state = 'down';
 
         clearInterval(interval);
@@ -165,8 +170,6 @@ var COMPONENT = function (init, ui) {
     };
 
     component.fireMouseUp = function(e) {
-        console.log('fireMouseUp', component);
-
         clearInterval(interval);
 
         $(e.target).unbind(ui.use_events.leave);

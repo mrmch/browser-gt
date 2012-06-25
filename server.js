@@ -12,19 +12,32 @@ app.get('/controller', function(req, res){
     res.redirect('/controller/index.html');
 });
 
-app.use('/screen/', express.static(__dirname + '/screen/', { maxAge: 31557600000 }));
+app.use('/screen/', express.static(__dirname + '/screen/'));
 app.use('/controller/', express.static(__dirname + '/controller/'));
 
-app.listen(8080);
+app.listen(process.env.NODE_ENV === 'production' ? 8080 : 8080, function() {
+    console.log('Ready');
+
+    // if run as root, downgrade to the owner of this file
+    if (process.getuid() === 0) {
+        require('fs').stat(__filename, function(err, stats) {
+            if (err) {
+                return console.log(err);
+            }
+            process.setuid(stats.uid);
+        });
+    }
+});
 
 var screen_io = io.of('/screens').on('connection', function(socket) {
-    socket.on('set screen_id', function(screen_id) {
+    socket.on('set screen_id', function(screen_id, callback) {
         if (screens.indexOf(screen_id) == -1) {
             screens.push(screen_id);
         }
         
         socket.set('screen_id', screen_id, function() {
-           controller_io.emit('updated screen list', screens); 
+           controller_io.emit('updated screen list', screens);
+           callback && callback();
         });
     });
     
@@ -43,13 +56,15 @@ var screen_io = io.of('/screens').on('connection', function(socket) {
 });
 
 var controller_io = io.of('/controllers').on('connection', function(socket) {
-    socket.on('set controller_id', function (controller_id) {
+    socket.on('set controller_id', function (controller_id, callback) {
         if (controllers.indexOf(controller_id) == -1) {
             controllers.push(controller_id);
         }
 
         socket.set('controller_id', controller_id);
         socket.emit('updated screen list', screens);
+        
+        callback && callback(true);
     });
     
     socket.on('action', function(action) {

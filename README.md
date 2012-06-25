@@ -45,8 +45,13 @@ Here is a base template for games to use:
         // invoked when a connected controller performs an action.
         // action object's properties match what game has defined via meta.json 
         // action = {
-        //  'accelerometer': {'x', 'y'},
+        //  'type': 'name of action',
+        //  'data': {'whatever', 'data', 'is', 'relevant', 'x', 'y'},
         // }
+      },
+      
+      controller_message: function (player_id, message) {
+        // invoked when a connected controller sends a message to the screen.
       },
     
       player_joined: function(player_id) {

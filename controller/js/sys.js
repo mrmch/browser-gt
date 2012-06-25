@@ -6,12 +6,28 @@ var CONTROLLER = (function (controller, $) {
     controller.meta = {};
     controller.id = id;
     controller.screens = [];
+    controller.uiLib = false;
     
     // define our modules
     controller.server = (function() {
         var server = {};
         
         server.id = 0;
+        server.ready = false;
+        
+        server.onReadyCallback = false;
+        
+        server.onReadyJoin = function(server_id, callback) {
+            controller.server.onReadyCallback = true;
+            
+            var t = setInterval(function() {
+                if (!controller.server.ready) {
+                    return;
+                }
+                controller.server.join(server_id, callback);
+                clearInterval(t);
+            }, 10);
+        }
         
         server.connected = function() {
             if (server.id) {
@@ -37,10 +53,13 @@ var CONTROLLER = (function (controller, $) {
             $(dom.toggles).empty();
         };
         
-        server.setMeta = function(game_meta) {
-            controller.meta = game_meta;
+        server.setMeta = function(meta) {
+            controller.meta = meta;
             
             controller.sensors.processSensors();
+            if ('controller_ui' in controller.meta) {
+                controller.ui.onReadySetUI(controller.meta.controller_ui);
+            }
         };
         
         server.message = function(message) {
@@ -107,7 +126,7 @@ var CONTROLLER = (function (controller, $) {
         };
                 
         sensors.processSensors = function() {
-            if (controller.meta.sensors.indexOf("accelerometer") != -1) {
+            if (controller.meta.sensors && controller.meta.sensors.indexOf("accelerometer") != -1) {
                 console.log('enable accelerometer tracking');
                 controller.sensors.enableAccelerometer();
             }
@@ -141,7 +160,25 @@ var CONTROLLER = (function (controller, $) {
     
     // TODO: move this out into ui module
     controller.ui = {
+        set: function(ui) {
+            controller.uiLib = ui;
+        },
+        
+        onReadySetUI: function(controller_ui) {
+            var t = setInterval(function() {
+                if (!controller.uiLib) {
+                    return;
+                }
+                controller.uiLib.setControllerId(controller_ui);
+                clearInterval(t);
+            }, 10);
+        },
+        
         updateScreenList: function() {
+            if (controller.server.onReadyCallback) {
+                return;
+            }
+            
             $(dom.screens).show();
             $(dom.screens).html("");
 
