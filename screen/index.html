@@ -5,6 +5,22 @@
         <title>Browser Games beta</title>
         <link href="/screen/css/bootstrap.min.css" rel="stylesheet">
         <link href="/screen/css/bootstrap-responsive.min.css" rel="stylesheet">
+        <style type="text/css">
+            .header {
+                margin-top: 60px;
+            }
+            .gameList {
+                width: 400px;
+                margin: 0px;
+                padding: 0px;
+            }
+            .gameTitle {
+            }
+            .gameTitle button,
+            .appTitle .btn {
+                margin-top: 10px;
+            }
+        </style>
     </head>
 
     <body>
@@ -21,8 +37,14 @@
                     <div class="nav-collapse">
                         <ul class="nav">
                             <li class="active"><a href="#">Home</a></li>
-                            <li><a href="#about">Games</a></li>
-                            <li><a href="#contact">Apps</a></li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#games">Games <b class="caret"></b></a>
+                                <ul class="dropdown-menu" id="games_dd"></ul>
+                            </li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#apps">Apps <b class="caret"></b></a>
+                                <ul class="dropdown-menu" id="apps_dd"></ul>
+                            </li>
                             <li><a href="#contact">Docs</a></li>
                             <li><a href="https://github.com/mrmch/browser-gt">Github</a></li>
                         </ul>
@@ -31,15 +53,33 @@
             </div>
         </div>
 
-        <div class="container">
-            <h1>Welcome to Browser Games beta</h1>
-            <h2 class="lead">Choose a game to host.</h2>
+        <div class="container header">
 
-            <ul class="gameList" id="game_list"></ul>
+            <div class="hero-unit">
+                <h1>Welcome to Browser Games</h1>
+                <p>
+                    This <em>beta</em> demonstrates what will be possible with
+                    our browser-based multi-device platform.
+                </p> 
+            </div>
+
+            <h2 class="lead">Choose a game to play</h2>
+
+            <div class="row" id="game_list">
+            
+            </div>
+
+            <br />
+            <br />
+
+            <h2 class="lead">Or try an App</h2>
+
+            <div class="row" id="app_list">
+            
+            </div>
+            <ul id="loadingLog">
+            </ul>
         </div>
-
-        <ul id="loadingLog">
-        </ul>
 
         <div id="gameArea"></div>
 
@@ -49,6 +89,7 @@
 
         <script>
             var games = ['browser-bomber', 'canvas'],
+                apps = ['chat', 'voter'],
                 screen_id = Math.round(Math.random() * 1000000000),
                 controllers = [],
                 socket = io.connect(window.location.origin + "/screens"),
@@ -75,7 +116,7 @@
             });
 
             socket.on('controller joined ' + screen_id, function(controller_id) {
-                // controller joined the game
+                // controller joined the ga">
                 controllers.push(controller_id);
                 console.log("Controller joined in: " + controller_id);
                 
@@ -115,27 +156,97 @@
 
             // --- screen/game flow and ui ---
             $(function() {
+
                 // load game information
+                for (appId in apps) {
+                    $.ajax({
+                        url: "/screen/apps/" + apps[appId] + "/meta.json",
+                        dataType: 'json',
+                        success: function(res) {
+                            var a = document.createElement("a");
+                            var d = document.createElement("div");
+                            var c = document.createElement('button');
+
+                            c = $(c).html('Close').addClass('btn btn-danger');
+
+                            a.href = 'javascript:(function(){'+
+                            'var i, d, a; ' +
+                            'd = document.createElement("div");' +
+                            'd.style.width="800px";d.style.height="600px";' +
+                            'd.style.marginTop="-300px";' +
+                            'd.style.marginLeft="-400px";' +
+                            'd.style.position="fixed";' +
+                            'd.style.top="50%";' +
+                            'd.style.left="50%";' +
+                            'd.style.border="1px solid #ccc";' +
+                            'd.style.backgroundColor="#f3f3f3";' +
+                            'i = document.createElement("iframe");' +
+                            'i.src="http://' + window.location.host + '/screen/embedded.html?id=' + res.id + '";' +
+                            'i.style.borderStyle="none";' +
+                            'i.style.width="100%";' +
+                            'i.style.height="100%";' +
+                            'd.appendChild(i);' +
+                            'a = document.createElement("button");' +
+                            'a.className = "btn btn-danger close-div";' +
+                            'a.innerHTML = "Close";' +
+                            'd.appendChild(a);' +
+                            'document.getElementsByTagName("body")[0].appendChild(d);' +
+                            '}());';
+
+                            a = $(a).addClass('btn').html("Launch App");
+                            d = $(d).addClass("span4 appTitle");
+                            d.attr('id', res.id);
+                            d.html("<h2>" + res.name + "</h2>" +
+                                res.description + "<br />" +
+                                "<em>Created by " + res.author + "</em><br />"
+                            );
+                            d.append(a);
+                            $("#app_list").append(d);
+                            $('#apps_dd').append("<li id='"+res.id+
+                                "'><a href='#'>" + res.name +"</a></li>"
+                            );
+                        }
+                    });
+                }
+
                 for (gameId in games) {
                     console.log('loading game', games[gameId]);
                     $.ajax({
                         url: "/screen/games/" + games[gameId] + "/meta.json",
                         dataType: 'json',
                         success: function(res) {
-                            $("#game_list")
+                            /*$("#game_list")
                                 .append("<li class='gameTitle' id='" + 
-                                    res.id + "'><h2>" + res.name + "</h2><em>(" + 
-                                        res.description +").</em><br />Created by " + 
-                                    res.author + "</li>"
+                                    res.id + "'><h2>" + res.name + "</h2>" + 
+                                    '<button class="btn">Launch Game</button>' +
+                                    res.description +"<br /><em>Created by " + 
+                                    res.author + "</em></li>"
                             );
+                            */
+                            $("#game_list")
+                                .append("<div class='span4 gameTitle' id='" + 
+                                    res.id + "'><h2>" + res.name + "</h2>" + 
+                                    res.description +"<br />" +
+                                    "<em>Created by " + res.author + "</em><br />" +
+                                    '<button class="btn">Launch Game</button>' +
+                                    "</div>"
+                            );
+                            $('#games_dd')
+                                .append("<li id='"+res.id+"'><a href='#'>" + res.name +
+                                        "</a></li>"
+                                );
                             gameData[res.id] = res;
                         }
                     });
                 }
 
+                $('.close-div').live('click', function() {
+                    $(this).parent().fadeOut('fast').remove();
+                });
+
                 // listener for starting games
-                $(".gameTitle").live('click', function() { 
-                    var game_id = $(this).attr("id"),
+                $(".gameTitle button, #games_dd li a").live('click', function() { 
+                    var game_id = $(this).parent().attr("id"),
                         imports = gameData[game_id].imports,
                         ready_imports = [];
                       

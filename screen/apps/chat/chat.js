@@ -2,7 +2,7 @@ var APP = (function(app) {
     app.init = function() {
         
     }
-    
+
     app.start = function() {
         $(function() {
             var base_url = window.location.host;
@@ -12,22 +12,23 @@ var APP = (function(app) {
             });
         });
     }
-    
+
     app.player_joined = function(controller_id) {
         CUI.joined(controller_id);
     }
-    
+
     app.player_left = function(controller_id) {
         CUI.left(controller_id);
     }
-    
+
     app.controller_action = function(controller_id, action) {
         
     }
-    
+
     app.controller_message = function(controller_id, message) {
         CUI.message(controller_id, message);
     }
     
     return app;
 }(APP || {}));
+
