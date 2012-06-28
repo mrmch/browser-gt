@@ -663,7 +663,10 @@ var GAME = GAME || {
         var sb = $('#scoreboard'),
             key,
             html = '<ul>',
-            ngbtn;
+            ngbtn,
+            base_url = window.location.host,
+            qrcode_src,
+            img;
 
         if (sb.length === 0) {
             ngbtn = document.createElement('button');
@@ -675,6 +678,14 @@ var GAME = GAME || {
             sb = $(sb);
             sb.attr('id', 'scoreboard');
 
+            qrcode_src = "https://chart.googleapis.com/chart?" +
+                "cht=qr&chs=250x250&chl=" + base_url + 
+                "/controller/index.html?id=" + GAME.screen_id;
+            img = document.createElement('img');
+            img = $(img);
+            img.attr('src', qrcode_src);
+
+            $(Crafty.stage.elem).before(img);
             $(Crafty.stage.elem).before(ngbtn);
             $(Crafty.stage.elem).before(sb);
         }
