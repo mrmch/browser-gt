@@ -24,8 +24,8 @@ var GAME = GAME || {
     /**
      * GAME SEUTP
      */
-    map_width: 25,
-    map_height: 17,
+    map_width: 16,
+    map_height: 16,
     tile_size: TILE_SIZE,
     player_sprite_size: 20,
     max_players: 4,
@@ -243,7 +243,7 @@ var GAME = GAME || {
             .css({"text-align": "center"});
     },
 
-    loadComponents: function() {
+    loadComponents: function () {
         /**
          * Load game components
          */
@@ -653,7 +653,7 @@ var GAME = GAME || {
         GAME.drawScoreBoard();
     },
 
-    drawScoreBoard: function() {
+    drawScoreBoard: function () {
         /**
          * Draws the scoreboard
          */
@@ -666,6 +666,8 @@ var GAME = GAME || {
             ngbtn,
             base_url = window.location.host,
             qrcode_src,
+            short_url,
+            our_url,
             img;
 
         if (sb.length === 0) {
@@ -679,8 +681,8 @@ var GAME = GAME || {
             sb.attr('id', 'scoreboard');
 
             qrcode_src = "https://chart.googleapis.com/chart?" +
-                "cht=qr&chs=250x250&chl=" + base_url + 
-                "/controller/index.html?id=" + GAME.screen_id;
+                "cht=qr&chs=250x250&chl=" + our_url;
+
             img = document.createElement('img');
             img = $(img);
             img.attr('src', qrcode_src);
