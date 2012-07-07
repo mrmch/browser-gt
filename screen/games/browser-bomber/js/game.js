@@ -687,9 +687,16 @@ var GAME = GAME || {
             img = $(img);
             img.attr('src', qrcode_src);
 
-            $(Crafty.stage.elem).before(img);
-            $(Crafty.stage.elem).before(ngbtn);
-            $(Crafty.stage.elem).before(sb);
+            var stuff = document.createElement('div');
+            stuff = $(stuff);
+            stuff.addClass('span10');
+            stuff.append(img);
+            stuff.append(ngbtn);
+            stuff.append(sb);
+
+            $(Crafty.stage.elem).before(stuff);
+            //$(Crafty.stage.elem).before(ngbtn);
+            //$(Crafty.stage.elem).before(sb);
         }
 
         for (key in GAME.players) {
