@@ -667,7 +667,7 @@ var GAME = GAME || {
             base_url = window.location.host,
             qrcode_src,
             short_url,
-            our_url,
+            our_url = base_url + "/controller/index.html?id=" + GAME.screen_id,
             img;
 
         if (sb.length === 0) {
@@ -699,6 +699,7 @@ var GAME = GAME || {
                     GAME.players[key].score + '</span></li>';
             }
         }
+
         html += '</ul>';
         sb.html(html);
     },
