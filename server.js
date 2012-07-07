@@ -3,16 +3,24 @@ var express = require('express'),
     io = require('socket.io').listen(app),
     controllers = [],
     screens = [],
-    screen_meta = {};
+    screen_meta = {},
+    maxAge = 0;
 
 app.get('/screen', function(req, res){
     res.redirect('/screen/index.html');
 });
+
 app.get('/controller', function(req, res){
     res.redirect('/controller/index.html');
 });
 
-app.use('/screen/', express.static(__dirname + '/screen/'));
+if (process.env.NODE_ENV === 'production') {
+    // We need this so we get smooth animations
+    // in production
+    maxAge = 31557600000;
+}
+
+app.use('/screen/', express.static(__dirname + '/screen/'), { maxAge: 31557600000 });
 app.use('/controller/', express.static(__dirname + '/controller/'));
 
 app.listen(process.env.NODE_ENV === 'production' ? 8080 : 8080, function() {
