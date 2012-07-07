@@ -667,7 +667,7 @@ var GAME = GAME || {
             base_url = window.location.host,
             qrcode_src,
             short_url,
-            our_url = base_url + "/controller/index.html?id=" + GAME.screen_id,
+            our_url = base_url + "/controller/index.html?id=" + screen_id,
             img;
 
         if (sb.length === 0) {
@@ -693,6 +693,7 @@ var GAME = GAME || {
             stuff.append(img);
             stuff.append(ngbtn);
             stuff.append(sb);
+            stuff.css("padding-top", "10px");
 
             $(Crafty.stage.elem).before(stuff);
             //$(Crafty.stage.elem).before(ngbtn);
